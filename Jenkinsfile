@@ -4,12 +4,12 @@ pipeline {
     
     environment {
         
-        AWS_REGION   = 'ap-south-1'
-        ACCOUNT_ID   = '123456789012'                 // ← change
-        REPO         = 'your-repo'                    // ← change
+        AWS_REGION   = 'us-east-1'
+        ACCOUNT_ID   = '762682309545'                
+        REPO         = 'hackathon'                   
 
         IMAGE_NAME = '762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon'
-        IMAGE_TAG  = "${env.BUILD_NUMBER}"   // e.g. 42
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"   // e.g. 1,2
     }
 
 
@@ -24,7 +24,7 @@ pipeline {
                 
                 sh '''
                     echo "==> Building Docker image"
-                    docker build --pull --no-cache -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker build --no-cache -t ${IMAGE_NAME}:${IMAGE_TAG} .
                     docker images | grep ${IMAGE_NAME}
                 '''
 
