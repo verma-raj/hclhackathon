@@ -35,6 +35,23 @@ variable "aws_region" {
   type = string
 }
 
+variable "db_name" {
+  type    = string
+  default = "mysqlappdb"
+}
+
+variable "db_username" {
+  type    = string
+  default = "admin"
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+  default = "Welcome123#"
+}
+
+
 
 
 
