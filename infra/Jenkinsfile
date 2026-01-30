@@ -28,12 +28,8 @@ pipeline {
                     docker build --no-cache -t ${IMAGE_NAME}:${IMAGE_TAG} .
                     docker images | grep ${IMAGE_NAME}
                 '''
-<<<<<<< HEAD
-            }
-=======
                  }
         }
->>>>>>> 9102c9ef16e7f4ebe241913fdd489956e89a0f8a
         
         stage('Sonar Scan') {
              steps{
@@ -80,14 +76,10 @@ pipeline {
                 '''
         }
 
-<<<<<<< HEAD
-       stage('Code Deploy') {
-=======
         
 
         stage('Code Deploy') {
              steps{
->>>>>>> 9102c9ef16e7f4ebe241913fdd489956e89a0f8a
             echo "Code Deploy"
              }
         }
