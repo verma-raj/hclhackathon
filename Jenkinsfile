@@ -17,11 +17,11 @@ pipeline {
         stage('Git Checkout') {
             steps{
                 sh''' echo "Checkout the code"'''
-                checkout scmGit(branches: [[name: '*/Main']], extensions: [], userRemoteConfigs: [[credentialsId: 'c39f63b9-98be-4554-b22f-ed32b67788d2', url: 'https://github.com/verma-raj/hclhackathon.git']])
+                checkout scm
             }
         }
         }
-        stage('code Build'){
+      /*  stage('code Build'){
                  steps{
                 sh '''
                     echo "==> Building Docker image"
@@ -82,5 +82,5 @@ pipeline {
        }
         }
 
-    }
+    }*/
 }
