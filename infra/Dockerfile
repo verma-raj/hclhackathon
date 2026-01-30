@@ -9,7 +9,7 @@ RUN mkdir -p /usr/local/tomcat/webapps/ROOT
 
 # Copy static files
 COPY index.html /usr/local/tomcat/webapps/ROOT/index.html
-COPY giphy.webp /usr/local/tomcat/webapps/ROOT/giphy.webp
+#COPY giphy.webp /usr/local/tomcat/webapps/ROOT/giphy.webp
 
 # Expose Tomcat port
 EXPOSE 8080
