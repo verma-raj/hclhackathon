@@ -1,86 +1,69 @@
-pipeline {
-    agent any
+node(''){
+  env.PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
+  def dockerImage = "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:${env.BUILD_NUMBER}"
+  def awsExists = sh(script: "command -v aws >/dev/null 2>&1", returnStatus: true) == 0
+                      // Check if the Trivy Docker image is available
+                    def trivyImage = 'aquasec/trivy:latest'
+                    def trivyContainerName = 'trivy-container'
+                    
+  if (!awsExists) { 
+      stage('Install AWS CLI') {
+        sh '''
+          set -e
+          if [ ! -x "$WORKSPACE/aws-bin/aws" ]; then
+            rm -rf aws awscliv2.zip
+            curl -sSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+            unzip -oq awscliv2.zip
+            ./aws/install \
+              --install-dir "$WORKSPACE/aws-cli" \
+              --bin-dir "$WORKSPACE/aws-bin"
+            rm -rf aws awscliv2.zip
+          fi
 
-    
-    environment {
-        
-        AWS_REGION   = 'us-east-1'
-        ACCOUNT_ID   = '762682309545'                
-        REPO         = 'hackathon'                   
+          aws --version
+        '''
+      }
+  }
+  stage('Git Checkout') {
+        sh''' echo "Checkout the code"'''
+        checkout scm
+  } 
+  stage("build app") {
+      echo "compile the project"
+  }
 
-        IMAGE_NAME = '762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon'
-        IMAGE_TAG  = "${env.BUILD_NUMBER}"   // e.g. 1,2
+  stage('Build docker image') {
+      dir('infra'){
+          
+          echo "==> Building Docker image"
+          sh script: "docker build -t ${dockerImage} -f Dockerfile ."
+          echo "==> Completed building Docker image"
+      }
+  }
+
+        stage('Run Trivy Scan') {
+                    // Run the Trivy scan in the container
+                    echo "Running Trivy scan on the Docker image"
+                    sh """
+                    docker run \
+                            --rm \
+                            -v /var/run/docker.sock:/var/run/docker.sock \
+                            -v ${WORKSPACE}:/workspace \
+                            ${trivyImage} image --format json ${dockerImage} > trivy-report.json
+                    """
+                    // Archive the Trivy scan report
+                    archiveArtifacts artifacts: '**/trivy-report.json', allowEmptyArchive: true
+        }
+
+
+  stage('Publish to ECR') {
+    withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+      sh '''
+        aws ecr get-login-password --region us-east-1 \
+        | docker login --username AWS --password-stdin 762682309545.dkr.ecr.us-east-1.amazonaws.com
+      '''
+      sh script: "docker push ${dockerImage}", label: "Push to ECR"
     }
+  }
 
-
-    stages {
-        stage('Git Checkout') {
-            steps{
-                sh''' echo "Checkout the code"'''
-                checkout scm
-            }
-        }
-        }
-      /*  stage('code Build'){
-                 steps{
-                sh '''
-                    echo "==> Building Docker image"
-                    docker build --no-cache -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                    docker images | grep ${IMAGE_NAME}
-                '''
-            }
-        
-        stage('Sonar Scan') {
-             steps{
-                echo "mvn clean verify sonar:sonar"
-             }
-        }
-
-        Stage(' Trivy Scan of Image'){
-             steps{
-                echo "Trivy Scan of Image"
-             }
-        }
-
-        Stage(' AWS Login & Authentication'){
-             steps{
-                echo "Login to ECR"
-                
-                    sh '''
-                    aws --version
-                    aws ecr get-login-password --region ${AWS_REGION} \
-                    | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-                '''
-             }
-        }
-
-        Stage(' Build push to ECR'){
-             steps{
-                echo "Login to ECR"
-                
-                    sh '''
-                    aws --version
-                    aws ecr get-login-password --region ${AWS_REGION} \
-                    | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-                    '''
-             }
-        }
-
-        
-        steps {
-                withAWS(region: "${AWS_REGION}", credentials: 'aws-creds-id') {
-                sh '''
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:latest
-                '''
-        }
-
-       stage('Code Deploy') {
-        steps {
-            echo "Code Deploy"
-             }
-       }
-        }
-
-    }*/
 }
