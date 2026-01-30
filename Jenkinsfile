@@ -1,5 +1,6 @@
 node(''){
   env.PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
+ 
   def dockerImage = "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:${env.BUILD_NUMBER}"
   def awsExists = sh(script: "command -v aws >/dev/null 2>&1", returnStatus: true) == 0
                       // Check if the Trivy Docker image is available
@@ -42,17 +43,24 @@ node(''){
   }
 
   
-stage('SonarQube Analysis') {
-  steps {
-    sh '''
-      sonar-scanner \
-        -Dsonar.projectKey=hclhackathon \
-        -Dsonar.sources=. \
-        -Dsonar.host.url=http://sonarqube:9000 \
-        -Dsonar.login=$SONAR_TOKEN
-    '''
-  }
-}
+withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        stage('SonarQube Analysis') {
+            echo 'Running SonarQube scan using Docker...'
+            sh '''
+                docker run --rm \
+                    -v $(pwd):/project \
+                    -e SONAR_TOKEN=$SONAR_TOKEN \
+                    sonarsource/sonar-scanner-cli \
+                    sonar-scanner \
+                    -Dsonar.projectKey=hclhackathon \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=http://34.231.5.233:9000 \
+                    -Dsonar.token=$SONAR_TOKEN
+            '''
+        }
+    }
+
+
 
         stage('Run Trivy Scan') {
                     // Run the Trivy scan in the container
