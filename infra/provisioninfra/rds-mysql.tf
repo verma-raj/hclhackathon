@@ -19,7 +19,7 @@ resource "aws_security_group" "mysql" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [var.cidrblock]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -36,7 +36,7 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier             = "free-tier-mysql"
+  identifier             = "loginapp-mysql"
   engine                 = "mysql"
   instance_class         = "db.t4g.micro"
   allocated_storage      = 20

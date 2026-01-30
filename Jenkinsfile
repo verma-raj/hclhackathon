@@ -27,8 +27,7 @@ pipeline {
                     docker build --no-cache -t ${IMAGE_NAME}:${IMAGE_TAG} .
                     docker images | grep ${IMAGE_NAME}
                 '''
-
-        }
+            }
         
         stage('Sonar Scan') {
                 echo "mvn clean verify sonar:sonar"
@@ -67,9 +66,7 @@ pipeline {
                 '''
         }
 
-        
-
-        stage('Code Deploy') {
+       stage('Code Deploy') {
             echo "Code Deploy"
         }
 
