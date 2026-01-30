@@ -41,6 +41,19 @@ node(''){
       }
   }
 
+  
+stage('SonarQube Analysis') {
+  steps {
+    sh '''
+      sonar-scanner \
+        -Dsonar.projectKey=hclhackathon \
+        -Dsonar.sources=. \
+        -Dsonar.host.url=http://sonarqube:9000 \
+        -Dsonar.login=$SONAR_TOKEN
+    '''
+  }
+}
+
         stage('Run Trivy Scan') {
                     // Run the Trivy scan in the container
                     echo "Running Trivy scan on the Docker image"
