@@ -3,11 +3,9 @@ pipeline {
 
     environment {
         PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
-        dockerImage = "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:${env.BUILD_NUMBER}"
-        trivyImage = 'aquasec/trivy:latest'
-        trivyContainerName = 'trivy-container'
+        //dockerImage = "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:${env.BUILD_NUMBER}"
         TERRAFORM_VERSION = "1.14.4" 
-        PROPS = readProperties file: 'hackathon.properties'
+        
     }
 
     stages {
@@ -16,6 +14,10 @@ pipeline {
                 script {
                     def props = readProperties file: 'hackathon.properties'
                     env.SONAR_HOST_URL = props.SONAR_HOST_URL.replaceAll(/^"|"$/, '')  // removes quotes if present
+                    env.TRIVY_CONTAINER_NAME = props.TRIVY_CONTAINER_NAME.replaceAll(/^"|"$/, '') 
+                    env.TRIVY_IMAGE = props.TRIVY_IMAGE.replaceAll(/^"|"$/, '')
+                    env.DOCKER_IMAGE = props.ECR_REPO:${env.BUILD_NUMBER}
+
                 }
             }
         }
@@ -94,7 +96,7 @@ pipeline {
             steps {
                 dir('infra') {
                     echo "==> Building Docker image"
-                    sh "docker build -t ${dockerImage} -f Dockerfile ."
+                    sh "docker build -t ${DOCKER_IMAGE} -f Dockerfile ."
                     echo "==> Completed building Docker image"
                 }
             }
@@ -127,7 +129,7 @@ pipeline {
                         --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
                         -v ${WORKSPACE}:/workspace \
-                        ${trivyImage} image --format json ${dockerImage} > trivy-report.json
+                        ${TRIVY_IMAGE} image --format json ${DOCKER_IMAGE} > trivy-report.json
                 """
                 archiveArtifacts artifacts: '**/trivy-report.json', allowEmptyArchive: true
             }
@@ -141,13 +143,13 @@ pipeline {
                         aws ecr get-login-password --region us-east-1 \
                         | docker login --username AWS --password-stdin 762682309545.dkr.ecr.us-east-1.amazonaws.com
                     '''
-                    sh "docker push ${dockerImage}"
+                    sh "docker push ${DOCKER_IMAGE}"
 
                     sh """
                         aws ssm put-parameter \
                         --name "/hclhackathon/dev/docker_image" \
                         --type "String" \
-                        --value "${dockerImage}" \
+                        --value "${DOCKER_IMAGE}" \
                         --overwrite \
                         --region us-east-1
                     """
