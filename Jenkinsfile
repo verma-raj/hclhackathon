@@ -178,14 +178,9 @@ pipeline {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
 			     sh ''' cd infra/  &&  ${WORKSPACE}/tflint --init &&  ${WORKSPACE}/tflint --recursive --format=compact'''
                }
-}
-                        
-               
-                }
             }
-        }
-        
-    stage(' Terraform Validate '){
+    }
+     stage(' Terraform Validate '){
             steps{
                 echo 'Validating Terraform'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
