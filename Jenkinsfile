@@ -16,7 +16,8 @@ pipeline {
                     env.SONAR_HOST_URL = props.SONAR_HOST_URL.replaceAll(/^"|"$/, '')  // removes quotes if present
                     env.TRIVY_CONTAINER_NAME = props.TRIVY_CONTAINER_NAME.replaceAll(/^"|"$/, '') 
                     env.TRIVY_IMAGE = props.TRIVY_IMAGE.replaceAll(/^"|"$/, '')
-                    env.DOCKER_IMAGE = props.ECR_REPO:${env.BUILD_NUMBER}
+                    def repo = props.ECR_REPO.replaceAll(/^"|"$/, '')
+                    env.DOCKER_IMAGE = "${repo}:${env.BUILD_NUMBER}"
 
                 }
             }
