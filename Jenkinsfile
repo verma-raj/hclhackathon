@@ -80,6 +80,32 @@ pipeline {
             }
         }
 
+        stage('Install TFLint') {
+        steps {
+            sh '''
+      if command -v tflint >/dev/null 2>&1; then
+        echo "TFLint already installed: $(tflint --version)"
+      else
+        echo "TFLint not found. Installing..."
+
+        TFLINT_VERSION="v0.50.3"
+
+        curl -sLo tflint.zip \
+          https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_amd64.zip
+
+        unzip -o tflint.zip
+        chmod +x tflint
+        sudo mv tflint /usr/local/bin/
+
+        rm -f tflint.zip
+
+        echo "TFLint installed: $(tflint --version)"
+      fi
+    '''
+  }
+}
+
+
         stage('Git Checkout') {
             steps {
                 echo "Checkout the code"
