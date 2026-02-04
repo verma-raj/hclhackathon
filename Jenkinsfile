@@ -102,7 +102,7 @@ pipeline {
                             sonar-scanner \
                             -Dsonar.projectKey=hclhackathon \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=${PROPS.sonar_host_url}\
+                            -Dsonar.host.url=${PROPS.SONAR_HOST_URL}\
                             -Dsonar.token=$SONAR_TOKEN
                     '''
                 }
