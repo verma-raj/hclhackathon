@@ -10,17 +10,17 @@ pipeline {
         PROPS = readProperties file: 'hackathon.properties'
     }
 
-    stage('Load Properties') {
-        steps {
-            script {
-                def props = readProperties file: 'hackathon.properties'
-                env.SONAR_HOST_URL = props.SONAR_HOST_URL.replaceAll(/^"|"$/, '')  // removes quotes if present
+    stages {
+        stages('Load Properties') {
+            steps {
+                script {
+                    def props = readProperties file: 'hackathon.properties'
+                    env.SONAR_HOST_URL = props.SONAR_HOST_URL.replaceAll(/^"|"$/, '')  // removes quotes if present
+                }
             }
         }
-    }
 
 
-    stages {
          stage('Install Terraform') {
             steps {
                 script {
