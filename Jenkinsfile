@@ -154,7 +154,7 @@ pipeline {
                         --overwrite \
                         --region us-east-1
                     """
-                    
+
                 }
             }
         }
@@ -165,6 +165,20 @@ pipeline {
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
 			     sh ' cd infra/  &&  ${WORKSPACE}/terraform init '
+                        
+               
+                }
+            }
+        }
+
+    stage(' Terraform Lint '){
+            steps{
+                echo 'Terraform Lint'
+                 withAWS(credentials: 'aws-user', region: 'us-east-1') {
+                      //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
+			     sh ''' cd infra/  &&  ${WORKSPACE}/tflint --init &&  ${WORKSPACE}/tflint --recursive --format=compact'''
+               }
+}
                         
                
                 }
