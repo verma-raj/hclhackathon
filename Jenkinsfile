@@ -11,7 +11,7 @@ pipeline {
     }
 
     stages {
-        stages('Load Properties') {
+        stage ('Load Properties') {
             steps {
                 script {
                     def props = readProperties file: 'hackathon.properties'
