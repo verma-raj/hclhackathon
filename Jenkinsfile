@@ -101,7 +101,7 @@ pipeline {
                             sonar-scanner \
                             -Dsonar.projectKey=hclhackathon \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=http://34.231.5.233:9000 \
+                            -Dsonar.host.url=http://98.92.200.199:9000 \
                             -Dsonar.token=$SONAR_TOKEN
                     '''
                 }
@@ -125,7 +125,7 @@ pipeline {
        
         stage('Publish to ECR') {
             steps {
-                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                withAWS(credentials: 'aws-user', region: 'us-east-1') {
                     sh '''
                         aws ecr get-login-password --region us-east-1 \
                         | docker login --username AWS --password-stdin 762682309545.dkr.ecr.us-east-1.amazonaws.com
@@ -138,7 +138,7 @@ pipeline {
  	stage(' Terraform Init '){
             steps{
                 echo 'Initializing Terraform'
-                 withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                 withAWS(credentials: 'aws-user', region: 'us-east-1') {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
 			     sh ' cd infra/  &&  ${WORKSPACE}/terraform init '
                         
@@ -150,7 +150,7 @@ pipeline {
     stage(' Terraform Validate '){
             steps{
                 echo 'Validating Terraform'
-                 withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                 withAWS(credentials: 'aws-user', region: 'us-east-1') {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
 			     sh ' cd infra/ && ${WORKSPACE}/terraform validate'
                         
@@ -160,7 +160,7 @@ pipeline {
     stage(' Terraform Plan '){
             steps{
                 echo 'Running Terraform Plan'
-                 withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                 withAWS(credentials: 'aws-user', region: 'us-east-1') {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
 			     sh 'cd infra/ && ${WORKSPACE}/terraform plan'
                         
@@ -171,7 +171,7 @@ pipeline {
     stage(' Terraform Deploy '){
             steps{
                 echo 'Deploying Infrastructure'
-                 withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                 withAWS(credentials: 'aws-user', region: 'us-east-1') {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
 			     sh 'cd infra/ && ${WORKSPACE}/terraform apply --auto-approve'
                         
