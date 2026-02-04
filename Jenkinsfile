@@ -80,30 +80,36 @@ pipeline {
             }
         }
 
-        stage('Install TFLint') {
-        steps {
-            sh '''
-      if command -v tflint >/dev/null 2>&1; then
-        echo "TFLint already installed: $(tflint --version)"
-      else
-        echo "TFLint not found. Installing..."
-
-        TFLINT_VERSION="v0.50.3"
-
-        curl -sLo tflint.zip \
-          https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_amd64.zip
-
-        unzip -o tflint.zip
-        chmod +x tflint
-        sudo mv tflint /usr/local/bin/
-
-        rm -f tflint.zip
-
-        echo "TFLint installed: $(tflint --version)"
-      fi
-    '''
-  }
-}
+// 		stage('Install TFLint') {
+//         steps {
+//           script {   
+//             def tflintExists = sh(script: " cd $WORKSPACE && command -v tflint >/dev/null 2>&1", returnStatus: true) == 0
+//                 if (!tflintExists){
+//                     sh '''
+//                     set -e
+//                         echo "Installing TFLint locally in workspace..."
+//                         mkdir -p $WORKSPACE/bin
+//                         cd $WORKSPACE/bin
+//                         TFLINT_VERSION="v0.50.3"
+//                         curl -sLo tflint.zip \
+//                         https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_amd64.zip
+//                         unzip -o tflint.zip
+//                         chmod +x tflint
+//                         mv tflint /usr/local/bin/
+//                         rm -f tflint.zip
+//                         echo "TFLint installed: $(tflint --version)"
+//                     '''
+//             } else { 
+//                 echo " TFLint already exists " 
+                
+//             }
+//             env.PATH = "${env.WORKSPACE}/bin:${env.PATH}"
+//             sh "tflint --version"
+  
+//           }
+//   }
+// }
+       
 
 
         stage('Git Checkout') {
@@ -197,15 +203,15 @@ pipeline {
             }
         }
 
-    stage(' Terraform Lint '){
-            steps{
-                echo 'Terraform Lint'
-                 withAWS(credentials: 'aws-user', region: 'us-east-1') {
-                      //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
-			     sh ''' cd infra/  &&  ${WORKSPACE}/tflint --init &&  ${WORKSPACE}/tflint --recursive --format=compact'''
-               }
-            }
-    }
+    // stage(' Terraform Lint '){
+    //         steps{
+    //             echo 'Terraform Lint'
+    //              withAWS(credentials: 'aws-user', region: 'us-east-1') {
+    //                   //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
+			 //     sh ''' cd infra/  &&  ${WORKSPACE}/tflint --init &&  ${WORKSPACE}/tflint --recursive --format=compact'''
+    //            }
+    //         }
+    // }
      stage(' Terraform Validate '){
             steps{
                 echo 'Validating Terraform'
