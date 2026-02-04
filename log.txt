@@ -1,0 +1,625 @@
+Started by user Rajiv Verma
+Replayed #44
+Connecting to https://api.github.com with no credentials, anonymous access
+Obtained Jenkinsfile from 313143e6a0599878c32dfb05e7665841c2c1e4e0
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/jenkins_home/workspace/hclhackathonCICD_Main
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/jenkins_home/workspace/hclhackathonCICD_Main/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/verma-raj/hclhackathon.git # timeout=10
+Fetching without tags
+Fetching upstream changes from https://github.com/verma-raj/hclhackathon.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git fetch --no-tags --force --progress -- https://github.com/verma-raj/hclhackathon.git +refs/heads/Main:refs/remotes/origin/Main # timeout=10
+Checking out Revision 313143e6a0599878c32dfb05e7665841c2c1e4e0 (Main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 313143e6a0599878c32dfb05e7665841c2c1e4e0 # timeout=10
+Commit message: "added webp file and tflint"
+ > git rev-list --no-walk 313143e6a0599878c32dfb05e7665841c2c1e4e0 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Load Properties)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] readProperties
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Install Terraform)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+Installing Terraform locally in the workspace...
+[Pipeline] sh
++ TERRAFORM_VERSION=1.14.4
++ curl -LO https://releases.hashicorp.com/terraform/1.14.4/terraform_1.14.4_linux_amd64.zip
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 29.4M  100 29.4M    0     0  98.4M      0 --:--:-- --:--:-- --:--:-- 98.5M
++ unzip -o terraform_1.14.4_linux_amd64.zip
+Archive:  terraform_1.14.4_linux_amd64.zip
+  inflating: LICENSE.txt             
+  inflating: terraform               
++ rm terraform_1.14.4_linux_amd64.zip
++ /var/jenkins_home/workspace/hclhackathonCICD_Main/terraform -version
+Terraform v1.14.4
+on linux_amd64
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Check AWS CLI)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sh
++ command -v aws
+[Pipeline] echo
+AWS CLI already installed.
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Git Checkout)
+[Pipeline] echo
+Checkout the code
+[Pipeline] checkout
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/jenkins_home/workspace/hclhackathonCICD_Main/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/verma-raj/hclhackathon.git # timeout=10
+Fetching without tags
+Fetching upstream changes from https://github.com/verma-raj/hclhackathon.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git fetch --no-tags --force --progress -- https://github.com/verma-raj/hclhackathon.git +refs/heads/Main:refs/remotes/origin/Main # timeout=10
+Checking out Revision 313143e6a0599878c32dfb05e7665841c2c1e4e0 (Main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 313143e6a0599878c32dfb05e7665841c2c1e4e0 # timeout=10
+Commit message: "added webp file and tflint"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build App)
+[Pipeline] echo
+Compile the project
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build Docker Image)
+[Pipeline] dir
+Running in /var/jenkins_home/workspace/hclhackathonCICD_Main/infra
+[Pipeline] {
+[Pipeline] echo
+==> Building Docker image
+[Pipeline] sh
++ docker build -t 762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:45 -f Dockerfile .
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  882.6MB
+Step 1/7 : FROM tomcat:10.1-jdk17
+ ---> 66f534fd3c9c
+Step 2/7 : RUN rm -rf /usr/local/tomcat/webapps/ROOT
+ ---> Using cache
+ ---> 3650b4142b54
+Step 3/7 : RUN mkdir -p /usr/local/tomcat/webapps/ROOT
+ ---> Using cache
+ ---> 23ef1a56ec3e
+Step 4/7 : COPY index.html /usr/local/tomcat/webapps/ROOT/index.html
+ ---> Using cache
+ ---> 8189384953a6
+Step 5/7 : COPY squad-team.webp /usr/local/tomcat/webapps/ROOT/squad-team.webp
+ ---> Using cache
+ ---> be09029d75bf
+Step 6/7 : EXPOSE 8080
+ ---> Using cache
+ ---> cdcd1a227244
+Step 7/7 : CMD ["catalina.sh", "run"]
+ ---> Using cache
+ ---> 73acb421b1eb
+Successfully built 73acb421b1eb
+Successfully tagged 762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:45
+[Pipeline] echo
+==> Completed building Docker image
+[Pipeline] }
+[Pipeline] // dir
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (SonarQube Analysis)
+[Pipeline] withCredentials
+Masking supported pattern matches of $SONAR_TOKEN
+[Pipeline] {
+[Pipeline] echo
+Running SonarQube scan using Docker...
+[Pipeline] sh
++ pwd
++ docker run --rm -v /var/jenkins_home/workspace/hclhackathonCICD_Main:/project -e SONAR_TOKEN=**** sonarsource/sonar-scanner-cli sonar-scanner -Dsonar.projectKey=hclhackathon -Dsonar.sources=. -Dsonar.host.url=http://98.92.200.199:9000 -Dsonar.token=****
+18:48:07.019 WARN  Property 'sonar.token' with value **** is overridden with value ****
+18:48:07.029 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+18:48:07.029 INFO  Project root configuration file: NONE
+18:48:07.049 INFO  SonarScanner CLI 8.0.1.6346
+18:48:07.055 INFO  Linux 6.14.0-1018-aws amd64
+18:48:08.226 INFO  Communicating with SonarQube Server 9.9.8.100196
+18:48:09.216 INFO  Load global settings
+18:48:09.299 INFO  Load global settings (done) | time=83ms
+18:48:09.300 INFO  Server id: D6762DAA-AZwobCv1-roNRNdJxELz
+18:48:09.306 INFO  User cache: /opt/sonar-scanner/.sonar/cache
+18:48:09.311 INFO  Load/download plugins
+18:48:09.311 INFO  Load plugins index
+18:48:09.357 INFO  Load plugins index (done) | time=45ms
+18:48:11.309 INFO  Load/download plugins (done) | time=1998ms
+18:48:11.813 INFO  Process project properties
+18:48:11.821 INFO  Process project properties (done) | time=8ms
+18:48:11.825 INFO  Execute project builders
+18:48:11.826 INFO  Execute project builders (done) | time=1ms
+18:48:11.833 INFO  Project key: hclhackathon
+18:48:11.833 INFO  Base dir: /usr/src
+18:48:11.833 INFO  Working dir: /tmp/.scannerwork
+18:48:11.845 INFO  Load project settings for component key: 'hclhackathon'
+18:48:11.863 INFO  Load project settings for component key: 'hclhackathon' (done) | time=18ms
+18:48:12.022 WARN  SCM provider autodetection failed. Please use "sonar.scm.provider" to define SCM of your project, or disable the SCM Sensor in the project settings.
+18:48:12.034 INFO  Load quality profiles
+18:48:12.092 INFO  Load quality profiles (done) | time=58ms
+18:48:12.108 INFO  Load active rules
+18:48:13.091 INFO  Load active rules (done) | time=983ms
+18:48:13.095 INFO  Load analysis cache
+18:48:13.105 INFO  Load analysis cache (404) | time=10ms
+18:48:13.162 INFO  Load project repositories
+18:48:13.174 INFO  Load project repositories (done) | time=12ms
+18:48:13.209 INFO  Indexing files...
+18:48:13.210 INFO  Project configuration:
+18:48:13.216 INFO  0 files indexed
+18:48:13.218 INFO  ------------- Run sensors on module hclhackathon
+18:48:13.305 INFO  Load metrics repository
+18:48:13.343 INFO  Load metrics repository (done) | time=38ms
+18:48:14.723 INFO  Sensor JaCoCo XML Report Importer [jacoco]
+18:48:14.724 INFO  'sonar.coverage.jacoco.xmlReportPaths' is not defined. Using default locations: target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml,build/reports/jacoco/test/jacocoTestReport.xml
+18:48:14.725 INFO  No report imported, no coverage information will be imported by JaCoCo XML Report Importer
+18:48:14.725 INFO  Sensor JaCoCo XML Report Importer [jacoco] (done) | time=3ms
+18:48:14.725 INFO  Sensor CSS Rules [javascript]
+18:48:14.725 INFO  No CSS, PHP, HTML or VueJS files are found in the project. CSS analysis is skipped.
+18:48:14.725 INFO  Sensor CSS Rules [javascript] (done) | time=0ms
+18:48:14.725 INFO  Sensor C# Project Type Information [csharp]
+18:48:14.726 INFO  Sensor C# Project Type Information [csharp] (done) | time=1ms
+18:48:14.726 INFO  Sensor C# Analysis Log [csharp]
+18:48:14.739 INFO  Sensor C# Analysis Log [csharp] (done) | time=13ms
+18:48:14.739 INFO  Sensor C# Properties [csharp]
+18:48:14.739 INFO  Sensor C# Properties [csharp] (done) | time=0ms
+18:48:14.740 INFO  Sensor TextAndSecretsSensor [text]
+18:48:14.746 INFO  Sensor TextAndSecretsSensor [text] (done) | time=6ms
+18:48:14.746 INFO  Sensor VB.NET Project Type Information [vbnet]
+18:48:14.747 INFO  Sensor VB.NET Project Type Information [vbnet] (done) | time=1ms
+18:48:14.747 INFO  Sensor VB.NET Analysis Log [vbnet]
+18:48:14.758 INFO  Sensor VB.NET Analysis Log [vbnet] (done) | time=11ms
+18:48:14.758 INFO  Sensor VB.NET Properties [vbnet]
+18:48:14.758 INFO  Sensor VB.NET Properties [vbnet] (done) | time=0ms
+18:48:14.758 INFO  Sensor IaC Docker Sensor [iac]
+18:48:14.760 INFO  0 source files to be analyzed
+18:48:14.809 INFO  0/0 source files have been analyzed
+18:48:14.810 INFO  Sensor IaC Docker Sensor [iac] (done) | time=52ms
+18:48:14.813 INFO  ------------- Run sensors on project
+18:48:14.862 INFO  Sensor Analysis Warnings import [csharp]
+18:48:14.862 INFO  Sensor Analysis Warnings import [csharp] (done) | time=0ms
+18:48:14.862 INFO  Sensor Zero Coverage Sensor
+18:48:14.862 INFO  Sensor Zero Coverage Sensor (done) | time=0ms
+18:48:14.864 INFO  SCM Publisher No SCM system was detected. You can use the 'sonar.scm.provider' property to explicitly specify it.
+18:48:14.866 INFO  CPD Executor Calculating CPD for 0 files
+18:48:14.867 INFO  CPD Executor CPD calculation finished (done) | time=0ms
+18:48:14.932 INFO  Analysis report generated in 63ms, dir size=122.0 kB
+18:48:14.941 INFO  Analysis report compressed in 9ms, zip size=14.9 kB
+18:48:14.977 INFO  Analysis report uploaded in 36ms
+18:48:14.980 INFO  ANALYSIS SUCCESSFUL, you can find the results at: http://98.92.200.199:9000/dashboard?id=hclhackathon
+18:48:14.980 INFO  Note that you will be able to access the updated dashboard once the server has processed the submitted analysis report
+18:48:14.981 INFO  More about the report processing at http://98.92.200.199:9000/api/ce/task?id=AZwp-9F5-roNRNdJxOFc
+18:48:14.990 INFO  Analysis total time: 3.553 s
+18:48:14.992 INFO  EXECUTION SUCCESS
+18:48:14.992 INFO  Total time: 7.968s
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Trivy Scan)
+[Pipeline] echo
+Running Trivy scan on the Docker image
+[Pipeline] sh
++ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /var/jenkins_home/workspace/hclhackathonCICD_Main:/workspace aquasec/trivy:latest image --format json 762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:45
+2026-02-04T18:48:16Z	INFO	[vulndb] Need to update DB
+2026-02-04T18:48:16Z	INFO	[vulndb] Downloading vulnerability DB...
+2026-02-04T18:48:16Z	INFO	[vulndb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-db:2"
+21.47 MiB / 84.00 MiB [--------------->_____________________________________________] 25.56% ? p/s ?41.28 MiB / 84.00 MiB [----------------------------->_______________________________] 49.15% ? p/s ?61.87 MiB / 84.00 MiB [-------------------------------------------->________________] 73.66% ? p/s ?84.00 MiB / 84.00 MiB [--------------------------------------------->] 100.00% 103.96 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [--------------------------------------------->] 100.00% 103.96 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [--------------------------------------------->] 100.00% 103.96 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 97.25 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 97.25 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 97.25 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 90.98 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 90.98 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 90.98 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 85.11 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 85.11 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 85.11 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 79.62 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 79.62 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [---------------------------------------------->] 100.00% 79.62 MiB p/s ETA 0s84.00 MiB / 84.00 MiB [-------------------------------------------------] 100.00% 23.88 MiB p/s 3.7s2026-02-04T18:48:20Z	INFO	[vulndb] Artifact successfully downloaded	repo="mirror.gcr.io/aquasec/trivy-db:2"
+2026-02-04T18:48:20Z	INFO	[vuln] Vulnerability scanning is enabled
+2026-02-04T18:48:20Z	INFO	[secret] Secret scanning is enabled
+2026-02-04T18:48:20Z	INFO	[secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2026-02-04T18:48:20Z	INFO	[secret] Please see https://trivy.dev/docs/v0.69/guide/scanner/secret#recommendation for faster secret detection
+2026-02-04T18:48:25Z	INFO	[javadb] Downloading Java DB...
+2026-02-04T18:48:25Z	INFO	[javadb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+21.58 MiB / 823.60 MiB [->___________________________________________________________] 2.62% ? p/s ?44.17 MiB / 823.60 MiB [--->_________________________________________________________] 5.36% ? p/s ?65.69 MiB / 823.60 MiB [---->________________________________________________________] 7.98% ? p/s ?88.92 MiB / 823.60 MiB [---->_________________________________________] 10.80% 112.15 MiB p/s ETA 6s111.91 MiB / 823.60 MiB [------>______________________________________] 13.59% 112.15 MiB p/s ETA 6s132.69 MiB / 823.60 MiB [------->_____________________________________] 16.11% 112.15 MiB p/s ETA 6s157.48 MiB / 823.60 MiB [-------->____________________________________] 19.12% 112.29 MiB p/s ETA 5s178.97 MiB / 823.60 MiB [--------->___________________________________] 21.73% 112.29 MiB p/s ETA 5s202.11 MiB / 823.60 MiB [----------->_________________________________] 24.54% 112.29 MiB p/s ETA 5s224.97 MiB / 823.60 MiB [------------>________________________________] 27.32% 112.30 MiB p/s ETA 5s248.23 MiB / 823.60 MiB [------------->_______________________________] 30.14% 112.30 MiB p/s ETA 5s271.11 MiB / 823.60 MiB [-------------->______________________________] 32.92% 112.30 MiB p/s ETA 4s292.66 MiB / 823.60 MiB [--------------->_____________________________] 35.53% 112.33 MiB p/s ETA 4s315.42 MiB / 823.60 MiB [----------------->___________________________] 38.30% 112.33 MiB p/s ETA 4s338.56 MiB / 823.60 MiB [------------------>__________________________] 41.11% 112.33 MiB p/s ETA 4s359.67 MiB / 823.60 MiB [------------------->_________________________] 43.67% 112.29 MiB p/s ETA 4s384.58 MiB / 823.60 MiB [--------------------->_______________________] 46.69% 112.29 MiB p/s ETA 3s403.62 MiB / 823.60 MiB [---------------------->______________________] 49.01% 112.29 MiB p/s ETA 3s426.50 MiB / 823.60 MiB [----------------------->_____________________] 51.78% 112.24 MiB p/s ETA 3s445.84 MiB / 823.60 MiB [------------------------>____________________] 54.13% 112.24 MiB p/s ETA 3s469.53 MiB / 823.60 MiB [------------------------->___________________] 57.01% 112.24 MiB p/s ETA 3s491.50 MiB / 823.60 MiB [-------------------------->__________________] 59.68% 111.98 MiB p/s ETA 2s514.27 MiB / 823.60 MiB [---------------------------->________________] 62.44% 111.98 MiB p/s ETA 2s537.28 MiB / 823.60 MiB [----------------------------->_______________] 65.24% 111.98 MiB p/s ETA 2s560.23 MiB / 823.60 MiB [------------------------------>______________] 68.02% 112.15 MiB p/s ETA 2s570.47 MiB / 823.60 MiB [------------------------------->_____________] 69.27% 112.15 MiB p/s ETA 2s591.11 MiB / 823.60 MiB [-------------------------------->____________] 71.77% 112.15 MiB p/s ETA 2s614.08 MiB / 823.60 MiB [--------------------------------->___________] 74.56% 110.70 MiB p/s ETA 1s637.17 MiB / 823.60 MiB [---------------------------------->__________] 77.36% 110.70 MiB p/s ETA 1s659.81 MiB / 823.60 MiB [------------------------------------>________] 80.11% 110.70 MiB p/s ETA 1s683.19 MiB / 823.60 MiB [------------------------------------->_______] 82.95% 110.99 MiB p/s ETA 1s706.50 MiB / 823.60 MiB [-------------------------------------->______] 85.78% 110.99 MiB p/s ETA 1s729.61 MiB / 823.60 MiB [--------------------------------------->_____] 88.59% 110.99 MiB p/s ETA 0s752.91 MiB / 823.60 MiB [----------------------------------------->___] 91.42% 111.33 MiB p/s ETA 0s775.94 MiB / 823.60 MiB [------------------------------------------>__] 94.21% 111.33 MiB p/s ETA 0s798.23 MiB / 823.60 MiB [------------------------------------------->_] 96.92% 111.33 MiB p/s ETA 0s821.37 MiB / 823.60 MiB [-------------------------------------------->] 99.73% 111.51 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [------------------------------------------->] 100.00% 111.51 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [------------------------------------------->] 100.00% 111.51 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [------------------------------------------->] 100.00% 104.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [------------------------------------------->] 100.00% 104.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [------------------------------------------->] 100.00% 104.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 97.81 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 97.81 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 97.81 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 91.50 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 91.50 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 91.50 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 85.59 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 85.59 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 85.59 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 80.07 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 80.07 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 80.07 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 74.91 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 74.91 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 74.91 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 70.07 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 70.07 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 70.07 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 65.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 65.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 65.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 61.32 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 61.32 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 61.32 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 57.37 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 57.37 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 57.37 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 53.67 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 53.67 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 53.67 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 50.20 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 50.20 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 50.20 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 46.96 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 46.96 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 46.96 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 43.93 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 43.93 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 43.93 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 41.10 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 41.10 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 41.10 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 38.45 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 38.45 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 38.45 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 35.97 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 35.97 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 35.97 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 33.65 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 33.65 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 33.65 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 31.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 31.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 31.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 29.45 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 29.45 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 29.45 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 27.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 27.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 27.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 25.77 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 25.77 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 25.77 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 24.11 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 24.11 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 24.11 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 22.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 22.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 22.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 21.10 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 21.10 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 21.10 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 19.74 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 19.74 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 19.74 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 18.46 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 18.46 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 18.46 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 17.27 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 17.27 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 17.27 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 16.16 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 16.16 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 16.16 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 15.11 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 15.11 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 15.11 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 14.14 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 14.14 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 14.14 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 13.23 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 13.23 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 13.23 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 12.37 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 12.37 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 12.37 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 11.58 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 11.58 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 11.58 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 10.83 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 10.83 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 10.83 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 10.13 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 10.13 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [-------------------------------------------->] 100.00% 10.13 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 9.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 9.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 9.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 8.86 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 8.86 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 8.86 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 8.29 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 8.29 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 8.29 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 7.76 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 7.76 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 7.76 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 7.26 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 7.26 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 7.26 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 6.79 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 6.79 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 6.79 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 6.35 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 6.35 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 6.35 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.94 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.94 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.94 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.56 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.56 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.56 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.20 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.20 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 5.20 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.86 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.86 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.86 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.55 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.26 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.26 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 4.26 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.98 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.98 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.98 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.73 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.73 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.73 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [--------------------------------------------->] 100.00% 3.48 MiB p/s ETA 0s823.60 MiB / 823.60 MiB [------------------------------------------------] 100.00% 21.32 MiB p/s 39s2026-02-04T18:49:05Z	INFO	[javadb] Artifact successfully downloaded	repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+2026-02-04T18:49:05Z	INFO	[javadb] Java DB is cached for 3 days. If you want to update the database more frequently, "trivy clean --java-db" command clears the DB cache.
+2026-02-04T18:49:05Z	INFO	Detected OS	family="ubuntu" version="24.04"
+2026-02-04T18:49:05Z	INFO	[ubuntu] Detecting vulnerabilities...	os_version="24.04" pkg_num=146
+2026-02-04T18:49:05Z	INFO	Number of language-specific files	num=1
+2026-02-04T18:49:05Z	INFO	[jar] Detecting vulnerabilities...
+[Pipeline] archiveArtifacts
+Archiving artifacts
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Publish to ECR)
+[Pipeline] withAWS
+Constructing AWS CredentialsSetting AWS region us-east-1 
+ [Pipeline] {
+[Pipeline] sh
++ aws ecr get-login-password --region us-east-1
++ docker login --username AWS --password-stdin 762682309545.dkr.ecr.us-east-1.amazonaws.com
+
+WARNING! Your credentials are stored unencrypted in '/var/jenkins_home/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+Login Succeeded
+[Pipeline] sh
++ docker push 762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:45
+The push refers to repository [762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon]
+e60fcb0011cb: Preparing
+b7e17dfada77: Preparing
+11e0587497ba: Preparing
+5f70bf18a086: Preparing
+26528cb51ab4: Preparing
+5f70bf18a086: Preparing
+93dac2ad97c6: Preparing
+d2907f42189f: Preparing
+b0a9ce8e98a0: Preparing
+a5e42fffc303: Preparing
+83f7e124b1cd: Preparing
+123a078714d5: Preparing
+b0a9ce8e98a0: Waiting
+a5e42fffc303: Waiting
+83f7e124b1cd: Waiting
+123a078714d5: Waiting
+93dac2ad97c6: Waiting
+d2907f42189f: Waiting
+26528cb51ab4: Layer already exists
+e60fcb0011cb: Layer already exists
+5f70bf18a086: Layer already exists
+11e0587497ba: Layer already exists
+b7e17dfada77: Layer already exists
+d2907f42189f: Layer already exists
+b0a9ce8e98a0: Layer already exists
+93dac2ad97c6: Layer already exists
+a5e42fffc303: Layer already exists
+83f7e124b1cd: Layer already exists
+123a078714d5: Layer already exists
+45: digest: sha256:bf7d1f3a331dd88371672edf8a87bc411e9bd94ba568ee6824565d6e49ed9282 size: 2825
+[Pipeline] sh
++ aws ssm put-parameter --name /hclhackathon/dev/docker_image --type String --value 762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:45 --overwrite --region us-east-1
+{
+    "Version": 6,
+    "Tier": "Standard"
+}
+[Pipeline] }
+[Pipeline] // withAWS
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { ( Terraform Init )
+[Pipeline] echo
+Initializing Terraform
+[Pipeline] withAWS
+Constructing AWS CredentialsSetting AWS region us-east-1 
+ [Pipeline] {
+[Pipeline] sh
++ cd infra/
++ /var/jenkins_home/workspace/hclhackathonCICD_Main/terraform init
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing modules...[0m
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/tls from the dependency lock file
+- Reusing previous version of hashicorp/local from the dependency lock file
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Installing hashicorp/aws v6.30.0...
+- Installed hashicorp/aws v6.30.0 (signed by HashiCorp)
+- Installing hashicorp/tls v4.2.0...
+- Installed hashicorp/tls v4.2.0 (signed by HashiCorp)
+- Installing hashicorp/local v2.6.2...
+- Installed hashicorp/local v2.6.2 (signed by HashiCorp)
+Terraform has made some changes to the provider dependency selections recorded
+in the .terraform.lock.hcl file. Review those changes and commit them to your
+version control system if they represent changes you intended to make.
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+[Pipeline] }
+[Pipeline] // withAWS
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { ( Terraform Validate )
+[Pipeline] echo
+Validating Terraform
+[Pipeline] withAWS
+Constructing AWS CredentialsSetting AWS region us-east-1 
+ [Pipeline] {
+[Pipeline] sh
++ cd infra/
++ /var/jenkins_home/workspace/hclhackathonCICD_Main/terraform validate
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+[Pipeline] }
+[Pipeline] // withAWS
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { ( Terraform Plan )
+[Pipeline] echo
+Running Terraform Plan
+[Pipeline] withAWS
+Constructing AWS CredentialsSetting AWS region us-east-1 
+ [Pipeline] {
+[Pipeline] sh
++ cd infra/
++ /var/jenkins_home/workspace/hclhackathonCICD_Main/terraform plan
+[0m[1mmodule.aws_resources.tls_private_key.rsa: Refreshing state... [id=989a2f99c0b086f5c49a0aff96a295d230524a47][0m
+[0m[1mmodule.aws_resources.local_file.TF_key: Refreshing state... [id=ec7a8e6003b1e1120996c81779dabe274e13d0f5][0m
+[0m[1mmodule.aws_resources.data.aws_ssm_parameter.hackathon_image: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_key_pair.TF_key: Refreshing state... [id=TF_key][0m
+[0m[1mmodule.aws_resources.aws_vpc.vpc: Refreshing state... [id=vpc-01e930314687ba9a4][0m
+[0m[1mmodule.aws_resources.aws_iam_role.ecs_iam_role: Refreshing state... [id=MYECSTaskExecutionRole][0m
+[0m[1mmodule.aws_resources.data.aws_vpc.default: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_ecs_cluster.ecs_cluster: Refreshing state... [id=arn:aws:ecs:us-east-1:762682309545:cluster/ecs-cluster][0m
+[0m[1mmodule.aws_resources.data.aws_ssm_parameter.hackathon_image: Read complete after 0s [id=/hclhackathon/dev/docker_image][0m
+[0m[1mmodule.aws_resources.aws_iam_role_policy.ecs_iam_policy: Refreshing state... [id=MYECSTaskExecutionRole:MYECSTaskExecutionRolePolicy][0m
+[0m[1mmodule.aws_resources.aws_ecs_task_definition.ecs_taskdef: Refreshing state... [id=hackathon_ecs_taskdef][0m
+[0m[1mmodule.aws_resources.data.aws_vpc.default: Read complete after 1s [id=vpc-02a8bf5818ba874d8][0m
+[0m[1mmodule.aws_resources.data.aws_subnets.default: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_security_group.mysql: Refreshing state... [id=sg-039c947c98d076770][0m
+[0m[1mmodule.aws_resources.data.aws_subnets.default: Read complete after 0s [id=us-east-1][0m
+[0m[1mmodule.aws_resources.aws_db_subnet_group.default: Refreshing state... [id=rds-mysql-subnets][0m
+[0m[1mmodule.aws_resources.aws_internet_gateway.igw: Refreshing state... [id=igw-0f474fdaa7532714a][0m
+[0m[1mmodule.aws_resources.aws_security_group.SG: Refreshing state... [id=sg-0ffef316b5249321f][0m
+[0m[1mmodule.aws_resources.aws_subnet.pub_subnet[1]: Refreshing state... [id=subnet-0d79486edb0586c08][0m
+[0m[1mmodule.aws_resources.aws_subnet.pub_subnet[0]: Refreshing state... [id=subnet-00141c177fef3c959][0m
+[0m[1mmodule.aws_resources.aws_lb_target_group.lb_tg: Refreshing state... [id=arn:aws:elasticloadbalancing:us-east-1:762682309545:targetgroup/lb-tg/00f24fd7d3b34835][0m
+[0m[1mmodule.aws_resources.aws_eip.eip: Refreshing state... [id=eipalloc-062fd7cce7bc5c583][0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[1]: Reading...[0m[0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[0]: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_route_table.pubRT: Refreshing state... [id=rtb-0f5f0cd9a95c44a9a][0m
+[0m[1mmodule.aws_resources.aws_lb.ALB: Refreshing state... [id=arn:aws:elasticloadbalancing:us-east-1:762682309545:loadbalancer/app/ALB/64a4e91b4a29e37f][0m
+[0m[1mmodule.aws_resources.aws_db_instance.mysql: Refreshing state... [id=db-D5FR22FYJX2QW3LDOWBLLFLEYQ][0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[1]: Read complete after 0s [id=subnet-0d79486edb0586c08][0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[0]: Read complete after 0s [id=subnet-00141c177fef3c959][0m
+[0m[1mmodule.aws_resources.aws_route_table_association.pub_route_association["0"]: Refreshing state... [id=rtbassoc-03979bda896fb90bc][0m
+[0m[1mmodule.aws_resources.aws_route_table_association.pub_route_association["1"]: Refreshing state... [id=rtbassoc-0ce12377182368048][0m
+[0m[1mmodule.aws_resources.aws_lb_listener.lb_listener: Refreshing state... [id=arn:aws:elasticloadbalancing:us-east-1:762682309545:listener/app/ALB/64a4e91b4a29e37f/deb58d216fcec6d0][0m
+[0m[1mmodule.aws_resources.aws_ecs_service.ecs_svc: Refreshing state... [id=arn:aws:ecs:us-east-1:762682309545:service/ecs-cluster/ecs-clst-svc][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [33m~[0m update in-place[0m
+[31m-[0m/[32m+[0m destroy and then create replacement[0m
+ [36m<=[0m read (data resources)[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.aws_resources.data.aws_ecs_task_definition.ecs_taskdef[0m will be read during apply
+  # (depends on a resource or a module with changes pending)
+[0m [36m<=[0m[0m data "aws_ecs_task_definition" "ecs_taskdef" {
+      [32m+[0m[0m arn                      = (known after apply)
+      [32m+[0m[0m arn_without_revision     = (known after apply)
+      [32m+[0m[0m container_definitions    = (known after apply)
+      [32m+[0m[0m cpu                      = (known after apply)
+      [32m+[0m[0m enable_fault_injection   = (known after apply)
+      [32m+[0m[0m ephemeral_storage        = (known after apply)
+      [32m+[0m[0m execution_role_arn       = (known after apply)
+      [32m+[0m[0m family                   = (known after apply)
+      [32m+[0m[0m id                       = (known after apply)
+      [32m+[0m[0m ipc_mode                 = (known after apply)
+      [32m+[0m[0m memory                   = (known after apply)
+      [32m+[0m[0m network_mode             = (known after apply)
+      [32m+[0m[0m pid_mode                 = (known after apply)
+      [32m+[0m[0m placement_constraints    = (known after apply)
+      [32m+[0m[0m proxy_configuration      = (known after apply)
+      [32m+[0m[0m region                   = (known after apply)
+      [32m+[0m[0m requires_compatibilities = (known after apply)
+      [32m+[0m[0m revision                 = (known after apply)
+      [32m+[0m[0m runtime_platform         = (known after apply)
+      [32m+[0m[0m status                   = (known after apply)
+      [32m+[0m[0m task_definition          = "hackathon_ecs_taskdef"
+      [32m+[0m[0m task_role_arn            = (known after apply)
+      [32m+[0m[0m volume                   = (known after apply)
+    }
+
+[1m  # module.aws_resources.aws_ecs_service.ecs_svc[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_ecs_service" "ecs_svc" {
+        id                                 = "arn:aws:ecs:us-east-1:762682309545:service/ecs-cluster/ecs-clst-svc"
+        name                               = "ecs-clst-svc"
+        tags                               = {}
+      [33m~[0m[0m task_definition                    = "arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef:20" -> (known after apply)
+        [90m# (18 unchanged attributes hidden)[0m[0m
+
+        [90m# (5 unchanged blocks hidden)[0m[0m
+    }
+
+[1m  # module.aws_resources.aws_ecs_task_definition.ecs_taskdef[0m must be [1m[31mreplaced[0m
+[0m[31m-[0m/[32m+[0m[0m resource "aws_ecs_task_definition" "ecs_taskdef" {
+      [33m~[0m[0m arn                      = "arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef:20" -> (known after apply)
+      [33m~[0m[0m arn_without_revision     = "arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef" -> (known after apply)
+      [33m~[0m[0m container_definitions    = (sensitive value) [31m# forces replacement[0m[0m
+      [33m~[0m[0m enable_fault_injection   = false -> (known after apply)
+      [33m~[0m[0m id                       = "hackathon_ecs_taskdef" -> (known after apply)
+      [33m~[0m[0m revision                 = 20 -> (known after apply)
+      [31m-[0m[0m tags                     = {} [90m-> null[0m[0m
+      [33m~[0m[0m tags_all                 = {} -> (known after apply)
+        [90m# (12 unchanged attributes hidden)[0m[0m
+    }
+
+[1mPlan:[0m [0m1 to add, 1 to change, 1 to destroy.
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.
+[Pipeline] }
+[Pipeline] // withAWS
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { ( Terraform Deploy )
+[Pipeline] echo
+Deploying Infrastructure
+[Pipeline] withAWS
+Constructing AWS CredentialsSetting AWS region us-east-1 
+ [Pipeline] {
+[Pipeline] sh
++ cd infra/
++ /var/jenkins_home/workspace/hclhackathonCICD_Main/terraform apply --auto-approve
+[0m[1mmodule.aws_resources.tls_private_key.rsa: Refreshing state... [id=989a2f99c0b086f5c49a0aff96a295d230524a47][0m
+[0m[1mmodule.aws_resources.local_file.TF_key: Refreshing state... [id=ec7a8e6003b1e1120996c81779dabe274e13d0f5][0m
+[0m[1mmodule.aws_resources.data.aws_ssm_parameter.hackathon_image: Reading...[0m[0m
+[0m[1mmodule.aws_resources.data.aws_vpc.default: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_key_pair.TF_key: Refreshing state... [id=TF_key][0m
+[0m[1mmodule.aws_resources.aws_ecs_cluster.ecs_cluster: Refreshing state... [id=arn:aws:ecs:us-east-1:762682309545:cluster/ecs-cluster][0m
+[0m[1mmodule.aws_resources.aws_vpc.vpc: Refreshing state... [id=vpc-01e930314687ba9a4][0m
+[0m[1mmodule.aws_resources.aws_iam_role.ecs_iam_role: Refreshing state... [id=MYECSTaskExecutionRole][0m
+[0m[1mmodule.aws_resources.data.aws_ssm_parameter.hackathon_image: Read complete after 0s [id=/hclhackathon/dev/docker_image][0m
+[0m[1mmodule.aws_resources.aws_ecs_task_definition.ecs_taskdef: Refreshing state... [id=hackathon_ecs_taskdef][0m
+[0m[1mmodule.aws_resources.aws_iam_role_policy.ecs_iam_policy: Refreshing state... [id=MYECSTaskExecutionRole:MYECSTaskExecutionRolePolicy][0m
+[0m[1mmodule.aws_resources.data.aws_vpc.default: Read complete after 1s [id=vpc-02a8bf5818ba874d8][0m
+[0m[1mmodule.aws_resources.data.aws_subnets.default: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_security_group.mysql: Refreshing state... [id=sg-039c947c98d076770][0m
+[0m[1mmodule.aws_resources.data.aws_subnets.default: Read complete after 0s [id=us-east-1][0m
+[0m[1mmodule.aws_resources.aws_db_subnet_group.default: Refreshing state... [id=rds-mysql-subnets][0m
+[0m[1mmodule.aws_resources.aws_subnet.pub_subnet[1]: Refreshing state... [id=subnet-0d79486edb0586c08][0m
+[0m[1mmodule.aws_resources.aws_lb_target_group.lb_tg: Refreshing state... [id=arn:aws:elasticloadbalancing:us-east-1:762682309545:targetgroup/lb-tg/00f24fd7d3b34835][0m
+[0m[1mmodule.aws_resources.aws_security_group.SG: Refreshing state... [id=sg-0ffef316b5249321f][0m
+[0m[1mmodule.aws_resources.aws_internet_gateway.igw: Refreshing state... [id=igw-0f474fdaa7532714a][0m
+[0m[1mmodule.aws_resources.aws_subnet.pub_subnet[0]: Refreshing state... [id=subnet-00141c177fef3c959][0m
+[0m[1mmodule.aws_resources.aws_eip.eip: Refreshing state... [id=eipalloc-062fd7cce7bc5c583][0m
+[0m[1mmodule.aws_resources.aws_route_table.pubRT: Refreshing state... [id=rtb-0f5f0cd9a95c44a9a][0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[1]: Reading...[0m[0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[0]: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_db_instance.mysql: Refreshing state... [id=db-D5FR22FYJX2QW3LDOWBLLFLEYQ][0m
+[0m[1mmodule.aws_resources.aws_lb.ALB: Refreshing state... [id=arn:aws:elasticloadbalancing:us-east-1:762682309545:loadbalancer/app/ALB/64a4e91b4a29e37f][0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[0]: Read complete after 0s [id=subnet-00141c177fef3c959][0m
+[0m[1mmodule.aws_resources.data.aws_subnet.pubsubnetinfo[1]: Read complete after 0s [id=subnet-0d79486edb0586c08][0m
+[0m[1mmodule.aws_resources.aws_route_table_association.pub_route_association["1"]: Refreshing state... [id=rtbassoc-0ce12377182368048][0m
+[0m[1mmodule.aws_resources.aws_route_table_association.pub_route_association["0"]: Refreshing state... [id=rtbassoc-03979bda896fb90bc][0m
+[0m[1mmodule.aws_resources.aws_lb_listener.lb_listener: Refreshing state... [id=arn:aws:elasticloadbalancing:us-east-1:762682309545:listener/app/ALB/64a4e91b4a29e37f/deb58d216fcec6d0][0m
+[0m[1mmodule.aws_resources.aws_ecs_service.ecs_svc: Refreshing state... [id=arn:aws:ecs:us-east-1:762682309545:service/ecs-cluster/ecs-clst-svc][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [33m~[0m update in-place[0m
+[31m-[0m/[32m+[0m destroy and then create replacement[0m
+ [36m<=[0m read (data resources)[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.aws_resources.data.aws_ecs_task_definition.ecs_taskdef[0m will be read during apply
+  # (depends on a resource or a module with changes pending)
+[0m [36m<=[0m[0m data "aws_ecs_task_definition" "ecs_taskdef" {
+      [32m+[0m[0m arn                      = (known after apply)
+      [32m+[0m[0m arn_without_revision     = (known after apply)
+      [32m+[0m[0m container_definitions    = (known after apply)
+      [32m+[0m[0m cpu                      = (known after apply)
+      [32m+[0m[0m enable_fault_injection   = (known after apply)
+      [32m+[0m[0m ephemeral_storage        = (known after apply)
+      [32m+[0m[0m execution_role_arn       = (known after apply)
+      [32m+[0m[0m family                   = (known after apply)
+      [32m+[0m[0m id                       = (known after apply)
+      [32m+[0m[0m ipc_mode                 = (known after apply)
+      [32m+[0m[0m memory                   = (known after apply)
+      [32m+[0m[0m network_mode             = (known after apply)
+      [32m+[0m[0m pid_mode                 = (known after apply)
+      [32m+[0m[0m placement_constraints    = (known after apply)
+      [32m+[0m[0m proxy_configuration      = (known after apply)
+      [32m+[0m[0m region                   = (known after apply)
+      [32m+[0m[0m requires_compatibilities = (known after apply)
+      [32m+[0m[0m revision                 = (known after apply)
+      [32m+[0m[0m runtime_platform         = (known after apply)
+      [32m+[0m[0m status                   = (known after apply)
+      [32m+[0m[0m task_definition          = "hackathon_ecs_taskdef"
+      [32m+[0m[0m task_role_arn            = (known after apply)
+      [32m+[0m[0m volume                   = (known after apply)
+    }
+
+[1m  # module.aws_resources.aws_ecs_service.ecs_svc[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_ecs_service" "ecs_svc" {
+        id                                 = "arn:aws:ecs:us-east-1:762682309545:service/ecs-cluster/ecs-clst-svc"
+        name                               = "ecs-clst-svc"
+        tags                               = {}
+      [33m~[0m[0m task_definition                    = "arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef:20" -> (known after apply)
+        [90m# (18 unchanged attributes hidden)[0m[0m
+
+        [90m# (5 unchanged blocks hidden)[0m[0m
+    }
+
+[1m  # module.aws_resources.aws_ecs_task_definition.ecs_taskdef[0m must be [1m[31mreplaced[0m
+[0m[31m-[0m/[32m+[0m[0m resource "aws_ecs_task_definition" "ecs_taskdef" {
+      [33m~[0m[0m arn                      = "arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef:20" -> (known after apply)
+      [33m~[0m[0m arn_without_revision     = "arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef" -> (known after apply)
+      [33m~[0m[0m container_definitions    = (sensitive value) [31m# forces replacement[0m[0m
+      [33m~[0m[0m enable_fault_injection   = false -> (known after apply)
+      [33m~[0m[0m id                       = "hackathon_ecs_taskdef" -> (known after apply)
+      [33m~[0m[0m revision                 = 20 -> (known after apply)
+      [31m-[0m[0m tags                     = {} [90m-> null[0m[0m
+      [33m~[0m[0m tags_all                 = {} -> (known after apply)
+        [90m# (12 unchanged attributes hidden)[0m[0m
+    }
+
+[1mPlan:[0m [0m1 to add, 1 to change, 1 to destroy.
+[0m[1mmodule.aws_resources.aws_ecs_task_definition.ecs_taskdef: Destroying... [id=hackathon_ecs_taskdef][0m[0m
+[0m[1mmodule.aws_resources.aws_ecs_task_definition.ecs_taskdef: Destruction complete after 0s[0m
+[0m[1mmodule.aws_resources.aws_ecs_task_definition.ecs_taskdef: Creating...[0m[0m
+[0m[1mmodule.aws_resources.aws_ecs_task_definition.ecs_taskdef: Creation complete after 0s [id=hackathon_ecs_taskdef][0m
+[0m[1mmodule.aws_resources.data.aws_ecs_task_definition.ecs_taskdef: Reading...[0m[0m
+[0m[1mmodule.aws_resources.aws_ecs_service.ecs_svc: Modifying... [id=arn:aws:ecs:us-east-1:762682309545:service/ecs-cluster/ecs-clst-svc][0m[0m
+[0m[1mmodule.aws_resources.data.aws_ecs_task_definition.ecs_taskdef: Read complete after 0s [id=arn:aws:ecs:us-east-1:762682309545:task-definition/hackathon_ecs_taskdef:21][0m
+[0m[1mmodule.aws_resources.aws_ecs_service.ecs_svc: Modifications complete after 1s [id=arn:aws:ecs:us-east-1:762682309545:service/ecs-cluster/ecs-clst-svc][0m
+[0m[1m[32m
+Apply complete! Resources: 1 added, 1 changed, 1 destroyed.[0m
+[Pipeline] }
+[Pipeline] // withAWS
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+Cleaning up workspace
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
