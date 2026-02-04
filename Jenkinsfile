@@ -6,7 +6,8 @@ pipeline {
         dockerImage = "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:${env.BUILD_NUMBER}"
         trivyImage = 'aquasec/trivy:latest'
         trivyContainerName = 'trivy-container'
-         TERRAFORM_VERSION = "1.14.4" 
+        TERRAFORM_VERSION = "1.14.4" 
+        PROPS = readProperties file: 'hackathon.properties'
     }
 
     stages {
@@ -101,7 +102,7 @@ pipeline {
                             sonar-scanner \
                             -Dsonar.projectKey=hclhackathon \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=http://98.92.200.199:9000 \
+                            -Dsonar.host.url=${PROPS.sonar_host_url}\
                             -Dsonar.token=$SONAR_TOKEN
                     '''
                 }
