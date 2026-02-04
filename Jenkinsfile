@@ -132,6 +132,15 @@ pipeline {
                         | docker login --username AWS --password-stdin 762682309545.dkr.ecr.us-east-1.amazonaws.com
                     '''
                     sh "docker push ${dockerImage}"
+
+                    sh """
+                        aws ssm put-parameter \
+                        --name "/hclhackathon/dev/docker_image" \
+                        --type "String" \
+                        --value "${dockerImage}" \
+                        --overwrite \
+                        --region us-east-1
+                    """
                 }
             }
         }
