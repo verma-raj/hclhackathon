@@ -1,5 +1,9 @@
 // Create ECS Cluster with Fargate
 
+data "aws_ssm_parameter" "hackathon_image" {
+  name = "/hclhackathon/dev/docker_image"  
+}
+
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "ecs-cluster"
   region = var.aws_region
@@ -54,7 +58,7 @@ resource "aws_ecs_task_definition" "ecs_taskdef" {
   container_definitions    = jsonencode([
   {
     "name": "hackathon",
-    "image": "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:20",
+    "image": data.aws_ssm_parameter.hackathon_image.value ,
     "cpu": 1024,
     "memory": 2048,
     "essential": true
@@ -67,6 +71,8 @@ resource "aws_ecs_task_definition" "ecs_taskdef" {
   }
 ])
 }
+
+
 
 data "aws_ecs_task_definition" "ecs_taskdef" {
   task_definition = aws_ecs_task_definition.ecs_taskdef.family
