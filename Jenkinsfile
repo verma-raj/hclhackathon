@@ -10,6 +10,16 @@ pipeline {
         PROPS = readProperties file: 'hackathon.properties'
     }
 
+    stage('Load Properties') {
+        steps {
+            script {
+                def props = readProperties file: 'hackathon.properties'
+                env.SONAR_HOST_URL = props.SONAR_HOST_URL.replaceAll(/^"|"$/, '')  // removes quotes if present
+            }
+        }
+    }
+
+
     stages {
          stage('Install Terraform') {
             steps {
@@ -102,7 +112,7 @@ pipeline {
                             sonar-scanner \
                             -Dsonar.projectKey=hclhackathon \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=${PROPS.SONAR_HOST_URL}\
+                            -Dsonar.host.url="$SONAR_HOST_URL" \
                             -Dsonar.token=$SONAR_TOKEN
                     '''
                 }
