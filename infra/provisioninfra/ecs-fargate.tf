@@ -54,7 +54,7 @@ resource "aws_ecs_task_definition" "ecs_taskdef" {
   container_definitions    = jsonencode([
   {
     "name": "hackathon",
-    "image": "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:v1.0",
+    "image": "762682309545.dkr.ecr.us-east-1.amazonaws.com/hackathon:20",
     "cpu": 1024,
     "memory": 2048,
     "essential": true
