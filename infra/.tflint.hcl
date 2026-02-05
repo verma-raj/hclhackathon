@@ -1,6 +1,6 @@
 plugin "terraform" {
   enabled = true
-  preset  = "recommended"
+ 
 }
 # Allow warnings but fail only on errors.
 config {
