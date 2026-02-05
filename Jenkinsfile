@@ -17,7 +17,11 @@ pipeline {
                     env.TRIVY_IMAGE = props.TRIVY_IMAGE.replaceAll(/^"|"$/, '')
                     def repo = props.ECR_REPO.replaceAll(/^"|"$/, '')
                     env.DOCKER_IMAGE = "${repo}:${env.BUILD_NUMBER}"
-                    sh ''' getent group docker && groupadd -g 113 docker && usermod -aG docker jenkins '''
+                    def dockerExists = sh(script: "getent group docker >/dev/null 2>&1", returnStatus: true) == 0
+                    if (!dockerExists) {
+                        sh ''' groupadd -g 113 docker && usermod -aG docker jenkins '''
+                }
+                    
 
                 }
             }
