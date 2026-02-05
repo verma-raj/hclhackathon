@@ -28,7 +28,8 @@ rule "aws_resource_missing_tags" {
 # Helpful best-practice rails
 ############################################
 # encourage default_tags block
-rule "aws_provider_missing_default_tags" { enabled = true 
+rule "aws_provider_missing_default_tags" { 
+  enabled = true 
   tags    = ["Project", "Environment", "Owner"]
 } 
 
