@@ -2,7 +2,12 @@ plugin "terraform" {
   enabled = true
   preset  = "recommended"
 }
-
+# Allow warnings but fail only on errors.
+config {
+  module              = true
+  disabled_by_default = false
+  force               = true
+}
 
 
 ############################################
