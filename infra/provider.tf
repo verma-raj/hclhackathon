@@ -24,10 +24,12 @@ provider "aws" {
   access_key = var.AWS_ACCESS_KEY
   secret_key = var.AWS_SECRET_KEY
   region     = var.AWS_REGION
-default_tags {
+  default_tags {
     tags = {
-      Environment = "dev"
-      Project     = "hackathon"
+         Name = "AWSProvider"
+         Owner = "Rajiv"
+         Environment = "dev"
+         Project     = "hackathon"
     }
   }
 
