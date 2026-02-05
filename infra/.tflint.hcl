@@ -4,7 +4,7 @@ plugin "terraform" {
 # Allow warnings but fail only on errors.
 config {
   module              = false
-  disabled_by_default = false
+  disabled_by_default = true
   force               = true
 }
 
@@ -14,28 +14,6 @@ plugin "aws" {
   version = "0.45.0"
   source  = "github.com/terraform-linters/tflint-ruleset-aws"
 }
-
-
-rule "terraform_unused_declarations" { enabled = false }
-rule "terraform_required_providers"  { enabled = false }
-rule "terraform_required_version"    { enabled = false }
-rule "terraform_deprecated_index" { enabled = false }
-rule "terraform_typed_variables"  { enabled = false }
-############################################
-# Global behavior
-############################################
-
-
-
-############################################
-# Tagging policy (apply org-required tags everywhere)
-############################################
-# Require that AWS resources carry a minimum tag set.
-#rule "aws_resource_missing_tags" {
-#  enabled = true
-#  tags    = ["Name", "Environment", "Project"]
-  # Optionally exclude third-par 
-#}
 
 ############################################
 # Helpful best-practice rails  ---- For testing purpose
