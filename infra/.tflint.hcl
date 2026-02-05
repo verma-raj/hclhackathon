@@ -9,6 +9,13 @@ plugin "terraform" {
 # Global behavior
 ############################################
 
+plugin "aws" {
+  enabled = true
+  # Pin a recent version (example; you can bump to latest you use)
+  version = "0.45.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-aws"
+}
+
 
 ############################################
 # Tagging policy (apply org-required tags everywhere)

@@ -31,5 +31,4 @@ provider "aws" {
         Owner = "Rajiv"
     }
   }
-
 }
