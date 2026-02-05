@@ -17,6 +17,7 @@ pipeline {
                     env.TRIVY_IMAGE = props.TRIVY_IMAGE.replaceAll(/^"|"$/, '')
                     def repo = props.ECR_REPO.replaceAll(/^"|"$/, '')
                     env.DOCKER_IMAGE = "${repo}:${env.BUILD_NUMBER}"
+                    sh ''' getent group docker && groupadd -g 113 docker && usermod -aG docker jenkins '''
 
                 }
             }
