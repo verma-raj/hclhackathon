@@ -9,6 +9,14 @@ config {
   force               = true
 }
 
+plugin "aws" {
+  enabled = true
+  # Pin a recent version (example; you can bump to latest you use)
+  version = "0.45.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-aws"
+}
+
+
 rule "terraform_unused_declarations" { enabled = false }
 rule "terraform_required_providers"  { enabled = false }
 rule "terraform_required_version"    { enabled = false }
@@ -18,12 +26,6 @@ rule "terraform_typed_variables"  { enabled = false }
 # Global behavior
 ############################################
 
-plugin "aws" {
-  enabled = true
-  # Pin a recent version (example; you can bump to latest you use)
-  version = "0.45.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-aws"
-}
 
 
 ############################################
