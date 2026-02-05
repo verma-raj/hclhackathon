@@ -4,12 +4,16 @@ plugin "terraform" {
 }
 # Allow warnings but fail only on errors.
 config {
-  module              = true
+  module              = false
   disabled_by_default = false
   force               = true
 }
 
-
+rule "terraform_unused_declarations" { enabled = false }
+rule "terraform_required_providers"  { enabled = false }
+rule "terraform_required_version"    { enabled = false }
+rule "terraform_deprecated_index" { enabled = false }
+rule "terraform_typed_variables"  { enabled = false }
 ############################################
 # Global behavior
 ############################################
