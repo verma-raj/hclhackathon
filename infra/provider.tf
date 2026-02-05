@@ -26,10 +26,11 @@ provider "aws" {
   region     = var.AWS_REGION
   default_tags {
     tags = {
-         Name = "AWSProvider"
-         Owner = "Rajiv"
-         Environment = "dev"
-         Project     = "hackathon"
+        Project     = "hackathon"
+        Environment = "dev"
+        Owner = "Rajiv"
+        
+        
     }
   }
 
