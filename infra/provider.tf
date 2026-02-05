@@ -29,8 +29,6 @@ provider "aws" {
         Project     = "hackathon"
         Environment = "dev"
         Owner = "Rajiv"
-        
-        
     }
   }
 
