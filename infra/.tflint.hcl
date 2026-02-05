@@ -1,6 +1,5 @@
 plugin "terraform" {
   enabled = true
- 
 }
 # Allow warnings but fail only on errors.
 config {
