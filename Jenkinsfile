@@ -17,10 +17,7 @@ pipeline {
                     env.TRIVY_IMAGE = props.TRIVY_IMAGE.replaceAll(/^"|"$/, '')
                     def repo = props.ECR_REPO.replaceAll(/^"|"$/, '')
                     env.DOCKER_IMAGE = "${repo}:${env.BUILD_NUMBER}"
-                    def dockerExists = sh(script: "getent group docker >/dev/null 2>&1", returnStatus: true) == 0
-                    if (!dockerExists) {
-                        sh ''' groupadd -g 113 docker && usermod -aG docker jenkins '''
-                }
+                   
                     
 
                 }
@@ -180,7 +177,7 @@ pipeline {
                 echo 'Terraform Lint'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
                       //  echo "$AWS_ACCESS_KEY $AWS_SECRET_KEY $AWS_REGION" 
-			     sh ''' cd infra/  &&  ${WORKSPACE}/tflint --init &&  ${WORKSPACE}/tflint --recursive --format=compact'''
+			     sh ''' cd infra/  &&  tflint --init &&  tflint --recursive --format=compact'''
                }
             }
     }
