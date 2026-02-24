@@ -4,7 +4,6 @@ pipeline {
     environment {
         PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
         TERRAFORM_VERSION = "1.14.4" 
-        
     }
 
     stages {
@@ -25,7 +24,7 @@ pipeline {
         }
 
 
-         stage('Install Terraform') {
+        stage('Install Terraform') {
             steps {
                 script {
                     // Ensure Terraform version is correctly set
@@ -104,7 +103,7 @@ pipeline {
             }
         }
 
-      stage('SonarQube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     echo 'Running SonarQube scan using Docker...'
@@ -160,7 +159,7 @@ pipeline {
             }
         }
 
- 	stage(' Terraform Init '){
+ 	    stage(' Terraform Init ') {
             steps{
                 echo 'Initializing Terraform'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
@@ -172,7 +171,7 @@ pipeline {
             }
         }
 
-    stage(' Terraform Lint '){
+        stage(' Terraform Lint ') {
             steps{
                 echo 'Terraform Lint'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
@@ -180,8 +179,9 @@ pipeline {
 			     sh ''' cd infra/  &&  tflint --init &&  tflint --recursive --format=compact'''
                }
             }
-    }
-     stage(' Terraform Validate '){
+       }
+
+       stage(' Terraform Validate ') {
             steps{
                 echo 'Validating Terraform'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
@@ -191,7 +191,7 @@ pipeline {
                }
             }
         }
-    stage(' Terraform Plan '){
+        stage(' Terraform Plan '){
             steps{
                 echo 'Running Terraform Plan'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
@@ -202,7 +202,7 @@ pipeline {
             }
         }
         
-    stage(' Terraform Deploy '){
+        stage(' Terraform Deploy '){
             steps{
                 echo 'Deploying Infrastructure'
                  withAWS(credentials: 'aws-user', region: 'us-east-1') {
@@ -216,6 +216,69 @@ pipeline {
     }
 
     post {
+    // ✅ New: when pipeline fails, call API GW and upload console log
+        failure {
+            script {
+                echo "Pipeline failed — invoking API Gateway and uploading console output to S3 via pre-signed URL..."
+
+                // 1) Capture console output into a file
+                // Note: currentBuild.rawBuild may require Script Approval depending on your Jenkins security settings
+                def maxLines = (env.MAX_LOG_LINES ?: "20000") as Integer
+                def logText  = currentBuild.rawBuild.getLog(maxLines).join("\n")
+                writeFile file: "cicd-console-output.log", text: logText
+                archiveArtifacts artifacts: "cicd-console-output.log", allowEmptyArchive: true
+
+                // 2) Call API Gateway to get pre-signed URL
+                // Store API key in Jenkins Credentials (Secret text) with ID: apigw-ci-failure-key
+                withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GW_KEY')]) {
+
+                    // Prepare a payload (adjust fields if your API expects different input)
+                    def objectKey = "${env.JOB_NAME}/${env.BUILD_NUMBER}/console-output.log"
+                    def payload = groovy.json.JsonOutput.toJson([
+                        jobName     : env.JOB_NAME,
+                        buildNumber : env.BUILD_NUMBER,
+                        buildUrl    : env.BUILD_URL,
+                        bucket      : env.FAILURE_BUCKET,
+                        objectKey   : objectKey
+                    ])
+
+                    writeFile file: "ci-failure-payload.json", text: payload
+
+                    def response = sh(
+                        returnStdout: true,
+                        script: """
+                            set -e
+                            curl -sS -X POST "${env.CI_FAILURE_API_URL}" \
+                              -H "Content-Type: application/json" \
+                              -H "x-api-key: ${API_GW_KEY}" \
+                              --data @ci-failure-payload.json
+                        """
+                    ).trim()
+
+                    echo "API Gateway response received."
+
+                    // 3) Parse response for the pre-signed URL (support common field names)
+                    def json = new groovy.json.JsonSlurperClassic().parseText(response)
+                    def presignedUrl = json.presignedUrl ?: json.url ?: json.uploadUrl
+
+                    if (!presignedUrl) {
+                        error "API did not return a presigned URL. Response: ${response}"
+                    }
+
+                    // 4) Upload log file to S3 using pre-signed URL (usually PUT)
+                    sh """
+                        set -e
+                        curl -sS -X PUT \
+                          -H "Content-Type: text/plain" \
+                          --upload-file cicd-console-output.log \
+                          "${presignedUrl}"
+                    """
+
+                    echo "Console output uploaded successfully to S3 (via pre-signed URL)."
+                }
+            }
+        }
+
         always {
             echo "Cleaning up workspace"
             //cleanWs()
