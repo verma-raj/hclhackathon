@@ -193,92 +193,103 @@ pipeline {
             }
         }
     }
-
     post {
-        failure {
-            script {
-                echo "Pipeline failed — running API Gateway → pre-signed URL → upload console log workflow..."
-                // Create a deterministic filename in workspace (since Jenkins does not create one by default)
-                def safeJobName = (env.JOB_NAME ?: "job").replaceAll(/[\\/]/, "_")
-                def logFile = "console-output-${safeJobName}-${env.BUILD_NUMBER}.log"
-                // Wrap in try/catch so this handler doesn't hide the original failure
-                try {
-                    // 1) Download console output to file (no rawBuild usage → no sandbox issues)
-                    withCredentials([usernamePassword(credentialsId: 'jenkins-api-token',
-                                                      usernameVariable: 'JENKINS_USER',
-                                                      passwordVariable: 'JENKINS_TOKEN')]) {
-                        sh """
-                            set -e
-                            echo "Downloading console output from: ${BUILD_URL}consoleText"
-                            curl -sS --fail -u "${JENKINS_USER}:${JENKINS_TOKEN}" \
-                              "${BUILD_URL}consoleText" \
-                              -o "${logFile}"
-                        """
-                    }
+       failure {
+        script {
+            echo "Pipeline failed — running API Gateway → presigned URL → upload console log workflow..."
 
-                    archiveArtifacts artifacts: "${logFile}", allowEmptyArchive: true
-                    
-                    // 2) Invoke API Gateway exactly like your manual call (POST, content-type, x-api-key, no body)
-                    withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GW_KEY')]) {
+            // Jenkins does NOT create a default console log file in workspace, so we create one.
+            def safeJobName = (env.JOB_NAME ?: "job").replaceAll(/[\\/]/, "_")
+            def logFile = "console-output-${safeJobName}-${env.BUILD_NUMBER}.log"
 
-                        def response = sh(
-                            returnStdout: true,
-                            script: """
-                                set -e
-                                curl -sS --fail -X POST "${env.CI_FAILURE_API_URL}" \
-                                  -H "Content-Type: application/json" \
-                                  -H "x-api-key:${API_GW_KEY}"
-                            """
-                        ).trim()
+            try {
+                // 1) Download console output as a file (no rawBuild -> no sandbox approvals needed)
+                withCredentials([usernamePassword(credentialsId: 'jenkins-api-token',
+                                          usernameVariable: 'JENKINS_USER',
+                                          passwordVariable: 'JENKINS_TOKEN')]) {
 
-                        echo "API Gateway response: ${response}"
+                withEnv(["LOG_FILE=${logFile}", "CONSOLE_URL=${env.BUILD_URL}consoleText"]) {
+                    sh '''#!/bin/bash
+                      set -euo pipefail
+                      echo "Downloading console output from: ${CONSOLE_URL}"
 
-                        // 3) Parse response for upload instructions: upload.url, upload.method, upload.headers
-                        def parsed = new groovy.json.JsonSlurperClassic().parseText(response)
+              # NOTE: Using shell variable expansion avoids Groovy secret interpolation warnings
+              curl -sS --fail -u "$JENKINS_USER:$JENKINS_TOKEN" \
+                "${CONSOLE_URL}" \
+                -o "${LOG_FILE}"
 
-                        // In case the API is Lambda-proxy style and wraps JSON in "body"
-                        if (parsed?.body instanceof String) {
-                            parsed = new groovy.json.JsonSlurperClassic().parseText(parsed.body)
-                        }
-
-                        def upload = parsed.upload
-                        if (!upload?.url) {
-                            error "API response did not contain upload.url. Full response: ${response}"
-                        }
-
-                        def presignedUrl = upload.url
-                        def method = upload.method ?: "PUT"
-                        def headers = upload.headers ?: ["Content-Type": "text/plain"]
-
-                        // Optional: show S3 key returned by API
-                        if (parsed?.s3?.key) {
-                            echo "S3 object key from API: ${parsed.s3.key}"
-                        }
-
-                        // Build curl header arguments
-                        def headerArgs = headers.collect { k, v -> "-H \"${k}: ${v}\"" }.join(' ')
-
-                        // 4) Upload the console log using the pre-signed URL (method/headers from API)
-                        sh """
-                            set -e
-                            echo "Uploading ${logFile} to S3 using presigned URL (method: ${method})..."
-                            curl -sS --fail -X ${method} ${headerArgs} \
-                              --upload-file "${logFile}" \
-                              "${presignedUrl}"
-                            echo "Upload complete."
-                        """
-                    }
-
-                } catch (err) {
-                    echo "WARNING: Post-failure upload flow failed: ${err}"
-                    echo "Continuing so the original pipeline failure remains the main failure reason."
-                }
-            }
+              echo "Console log saved to ${LOG_FILE}"
+            '''
+          }
         }
 
-        always {
-            echo "Cleaning up workspace"
-            // cleanWs()
+        archiveArtifacts artifacts: logFile, allowEmptyArchive: true
+
+        // 2) Invoke API Gateway exactly like your manual curl (POST, headers only)
+        withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GW_KEY')]) {
+          def response = sh(
+            returnStdout: true,
+            script: '''#!/bin/bash
+              set -euo pipefail
+              curl -sS --fail -X POST "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure" \
+                -H "Content-Type: application/json" \
+                -H "x-api-key:$API_GW_KEY"
+            '''
+          ).trim()
+
+          // 3) Parse response: upload.url, upload.method, upload.headers (your actual schema)
+          def parsed = new groovy.json.JsonSlurperClassic().parseText(response)
+
+          // Handle Lambda-proxy style: { "body": "{...json...}" }
+          if (parsed?.body instanceof String) {
+            parsed = new groovy.json.JsonSlurperClassic().parseText(parsed.body)
+          }
+
+          def uploadUrl = parsed?.upload?.url
+          def method    = parsed?.upload?.method ?: "PUT"
+          def headers   = parsed?.upload?.headers ?: ["Content-Type": "text/plain"]
+
+          if (!uploadUrl) {
+            error "API did not return upload.url. Response was: ${response}"
+          }
+
+          // Do NOT echo the full presigned URL (it contains security token + signature)
+          echo "Got presigned upload instructions from API Gateway (method: ${method})."
+          if (parsed?.s3?.key) {
+            echo "Target S3 key: ${parsed.s3.key}"
+          }
+
+          // Build curl header arguments safely
+          // (Values unlikely to contain quotes; if they do, we can harden escaping)
+          def headerArgs = headers.collect { k, v -> "-H '${k}: ${v}'" }.join(' ')
+
+          // 4) Upload log to S3 using presigned URL (method + headers from API)
+          withEnv(["LOG_FILE=${logFile}", "UPLOAD_URL=${uploadUrl}", "METHOD=${method}", "HEADER_ARGS=${headerArgs}"]) {
+            sh '''#!/bin/bash
+              set -euo pipefail
+              echo "Uploading ${LOG_FILE} via presigned URL..."
+
+              # HEADER_ARGS contains quoted -H arguments; use eval for correct expansion
+              eval curl -sS --fail -X "$METHOD" $HEADER_ARGS \
+                --upload-file "$LOG_FILE" \
+                "$UPLOAD_URL"
+
+              echo "Upload completed."
+            '''
+          }
         }
+
+      } catch (err) {
+        // Important: don't hide the original pipeline failure
+        echo "WARNING: Post-failure upload flow failed: ${err}"
+        echo "Continuing so original pipeline failure remains visible."
+      }
     }
+  }
+
+  always {
+    echo "Cleaning up workspace"
+    // cleanWs()
+  }
+}
 }
