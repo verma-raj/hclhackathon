@@ -204,20 +204,20 @@ pipeline {
 
             try {
                 // 1) Download console output as a file (no rawBuild -> no sandbox approvals needed)
-                withCredentials([string(credentialsId: 'jenkins-api-token', variable: 'jenkins')]) {
+                withCredentials([usernamePassword(credentialsId: 'jenkins-api-token', passwordVariable: 'JENKINS_TOKEN', usernameVariable: 'JENKINS_USER')]) {
 
                 withEnv(["LOG_FILE=${logFile}", "CONSOLE_URL=${env.BUILD_URL}consoleText"]) {
                     sh '''#!/bin/bash
                       set -euo pipefail
                       echo "Downloading console output from: ${CONSOLE_URL}"
 
-              # NOTE: Using shell variable expansion avoids Groovy secret interpolation warnings
-              curl -sS --fail -u "$JENKINS_USER:$JENKINS_TOKEN" \
-                "${CONSOLE_URL}" \
-                -o "${LOG_FILE}"
+                    # NOTE: Using shell variable expansion avoids Groovy secret interpolation warnings
+                    curl -sS --fail -u "$JENKINS_USER:$JENKINS_TOKEN" \
+                    "${CONSOLE_URL}" \
+                    -o "${LOG_FILE}"
 
-              echo "Console log saved to ${LOG_FILE}"
-            '''
+                    echo "Console log saved to ${LOG_FILE}"
+                '''
           }
         }
 
@@ -231,7 +231,7 @@ pipeline {
               set -euo pipefail
               curl -sS --fail -X POST "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure" \
                 -H "Content-Type: application/json" \
-                -H "x-api-key:$API_GW_KEY"
+                -H "x-api-key:$API_GTW_KEY"
             '''
           ).trim()
 
