@@ -204,9 +204,7 @@ pipeline {
 
             try {
                 // 1) Download console output as a file (no rawBuild -> no sandbox approvals needed)
-                withCredentials([usernamePassword(credentialsId: 'jenkins-api-token',
-                                          usernameVariable: 'JENKINS_USER',
-                                          passwordVariable: 'JENKINS_TOKEN')]) {
+                withCredentials([string(credentialsId: 'jenkins-api-token', variable: 'jenkins')]) {
 
                 withEnv(["LOG_FILE=${logFile}", "CONSOLE_URL=${env.BUILD_URL}consoleText"]) {
                     sh '''#!/bin/bash
@@ -226,7 +224,7 @@ pipeline {
         archiveArtifacts artifacts: logFile, allowEmptyArchive: true
 
         // 2) Invoke API Gateway exactly like your manual curl (POST, headers only)
-        withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GW_KEY')]) {
+        withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API-GTW-KEY')]) {
           def response = sh(
             returnStdout: true,
             script: '''#!/bin/bash
