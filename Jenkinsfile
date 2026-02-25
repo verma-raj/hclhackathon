@@ -5,7 +5,7 @@ pipeline {
         PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
         TERRAFORM_VERSION = "1.14.4"
         // API Gateway endpoint (your manual command uses this)
-        CI_FAILURE_API_URL = "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure"
+        CI_FAILURE_API_ENDPOINT = "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure"
     }
 
     stages {
@@ -48,6 +48,7 @@ pipeline {
             steps {
                 script {
                     def awsExists = sh(script: "command -v aws >/dev/null 2>&1", returnStatus: true) == 0
+                    def pyExists = sh(script: "command -v python3 >/dev/null 2>&1", returnStatus: true) == 0
                     if (!awsExists) {
                         echo "AWS CLI not found, installing..."
                         sh '''
@@ -60,10 +61,23 @@ pipeline {
                                 rm -rf aws awscliv2.zip
                             fi
                             aws --version
+                            
                         '''
                     } else {
                         echo "AWS CLI already installed."
+                        
                     }
+                   
+                   if (!pyExists) { 
+                       echo "Python not found, installing..." 
+                       
+                   } else {
+                        echo "Python already installed."
+                        sh '''python3 --version
+                        '''
+                        
+                    } 
+                    
                 }
             }
         }
@@ -210,74 +224,125 @@ pipeline {
                     sh '''#!/bin/bash
                       set -euo pipefail
                       echo "Downloading console output from: ${CONSOLE_URL}"
+                      
+     
 
-                    # NOTE: Using shell variable expansion avoids Groovy secret interpolation warnings
-                    curl -sS --fail -u "$JENKINS_USER:$JENKINS_TOKEN" \
-                    "${CONSOLE_URL}" \
-                    -o "${LOG_FILE}"
+      		# 1) Clean token (removes hidden CR/LF that causes 401)
+      			JENKINS_TOKEN_CLEAN="$(printf "%s" "$JENKINS_TOKEN" | tr -d '\r\n')"
 
-                    echo "Console log saved to ${LOG_FILE}"
-                '''
+      		# 2) Preflight: validate auth in the SAME pipeline context (no secrets printed)
+      			WHOAMI_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+        				-u "$JENKINS_USER:$JENKINS_TOKEN_CLEAN" \
+        				"http://52.73.77.126:8080/whoAmI/api/json")
+      				echo "whoAmI HTTP status: ${WHOAMI_CODE}"
+
+      		# 3) Preflight: validate consoleText access before download
+      				CONSOLE_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+        				-u "$JENKINS_USER:$JENKINS_TOKEN_CLEAN" \
+        				"${CONSOLE_URL}")
+      			echo "consoleText HTTP status: ${CONSOLE_CODE}"
+
+      		if [ "${CONSOLE_CODE}" != "200" ]; then
+        			echo "consoleText request failed with HTTP ${CONSOLE_CODE}"
+        			exit 22
+      		fi
+      
+      
+ 			# 4) Download the consoleText
+      				curl -sS --fail \
+        				-u "$JENKINS_USER:$JENKINS_TOKEN_CLEAN" \
+        				"${CONSOLE_URL}" \
+        				-o "${LOG_FILE}"
+
+      		echo "Console log saved to ${LOG_FILE}"
+
+    		'''
           }
         }
 
         archiveArtifacts artifacts: logFile, allowEmptyArchive: true
 
         // 2) Invoke API Gateway exactly like your manual curl (POST, headers only)
-        withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API-GTW-KEY')]) {
-          def response = sh(
-            returnStdout: true,
-            script: '''#!/bin/bash
-              set -euo pipefail
-              curl -sS --fail -X POST "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure" \
-                -H "Content-Type: application/json" \
-                -H "x-api-key:$API_GTW_KEY"
-            '''
-          ).trim()
+        withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GTW_KEY')]) {
+        
+        withEnv(["LOG_FILE=${logFile}", "API_ENDPOINT=${env.CI_FAILURE_API_ENDPOINT}"]){
+        
+sh '''#!/bin/bash
+                set -euo pipefail
+                set +x
 
-          // 3) Parse response: upload.url, upload.method, upload.headers (your actual schema)
-          def parsed = new groovy.json.JsonSlurperClassic().parseText(response)
+                echo "Calling API Gateway: ${API_ENDPOINT}"
 
-          // Handle Lambda-proxy style: { "body": "{...json...}" }
-          if (parsed?.body instanceof String) {
-            parsed = new groovy.json.JsonSlurperClassic().parseText(parsed.body)
-          }
+                # API GW call (same as your manual curl)
+                curl -sS --fail -X POST "${API_ENDPOINT}" \
+                  -H "Content-Type: application/json" \
+                  -H "x-api-key:${API_GTW_KEY}" \
+                  -o apigw-response.json
 
-          def uploadUrl = parsed?.upload?.url
-          def method    = parsed?.upload?.method ?: "PUT"
-          def headers   = parsed?.upload?.headers ?: ["Content-Type": "text/plain"]
+                # Parse JSON using python3 to avoid Jenkins Groovy sandbox restrictions
+                python3 - <<'PY'
+import json, sys
 
-          if (!uploadUrl) {
-            error "API did not return upload.url. Response was: ${response}"
-          }
+with open("apigw-response.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
 
-          // Do NOT echo the full presigned URL (it contains security token + signature)
-          echo "Got presigned upload instructions from API Gateway (method: ${method})."
-          if (parsed?.s3?.key) {
-            echo "Target S3 key: ${parsed.s3.key}"
-          }
+# Handle Lambda proxy integration: {"body":"{...}"}
+if isinstance(data, dict) and isinstance(data.get("body"), str):
+    data = json.loads(data["body"])
 
-          // Build curl header arguments safely
-          // (Values unlikely to contain quotes; if they do, we can harden escaping)
-          def headerArgs = headers.collect { k, v -> "-H '${k}: ${v}'" }.join(' ')
+upload = (data or {}).get("upload") or {}
+url = upload.get("url")
+method = upload.get("method") or "PUT"
+headers = upload.get("headers") or {"Content-Type": "text/plain"}
 
-          // 4) Upload log to S3 using presigned URL (method + headers from API)
-          withEnv(["LOG_FILE=${logFile}", "UPLOAD_URL=${uploadUrl}", "METHOD=${method}", "HEADER_ARGS=${headerArgs}"]) {
-            sh '''#!/bin/bash
-              set -euo pipefail
-              echo "Uploading ${LOG_FILE} via presigned URL..."
+if not url:
+    print("ERROR: upload.url missing in API response", file=sys.stderr)
+    print(json.dumps(data)[:2000], file=sys.stderr)
+    sys.exit(2)
 
-              # HEADER_ARGS contains quoted -H arguments; use eval for correct expansion
-              eval curl -sS --fail -X "$METHOD" $HEADER_ARGS \
-                --upload-file "$LOG_FILE" \
-                "$UPLOAD_URL"
+# Write values to files
+with open("upload_url.txt", "w", encoding="utf-8") as f: f.write(url)
+#with open("upload_method.txt", "w", encoding="utf-8") as f: f.write(method)
+with open("upload_method.txt", "w", encoding="utf-8") as f: f.write(method + "\\n")
 
-              echo "Upload completed."
-            '''
-          }
+# Convert headers dict to curl args
+args = []
+for k, v in headers.items():
+    args.append(f"-H \\\"{k}: {v}\\\"")
+with open("upload_headers.txt", "w", encoding="utf-8") as f:
+    f.write(" ".join(args) + "\\n")
+
+
+# Optional S3 key
+s3 = (data or {}).get("s3") or {}
+with open("s3_key.txt", "w", encoding="utf-8") as f:
+    f.write(s3.get("key",""))
+PY
+		
+		METHOD="$(cat upload_method.txt)"
+		
+        HEADER_ARGS="$(cat upload_headers.txt)"
+        UPLOAD_URL="$(cat upload_url.txt)"
+        
+        echo "Print HEADER_ARGS: ${HEADER_ARGS}"
+		echo "Print UPLOAD_URL: ${UPLOAD_URL}"
+
+                if [ -s s3_key.txt ]; then
+                  echo "Target S3 key: $(cat s3_key.txt)"
+                fi
+
+                echo "Uploading ${LOG_FILE} using method ${METHOD}..."
+                # Do NOT echo ${UPLOAD_URL}; it contains temporary credentials/signature
+                curl -sS --fail --retry 3 --retry-delay 2 -X "${METHOD}" -H "Content-Type: text/plain" --upload-file "${LOG_FILE}" "${UPLOAD_URL}"
+                echo "Upload completed."
+              '''
+
         }
+          
+ }
+        
 
-      } catch (err) {
+ } catch (err) {
         // Important: don't hide the original pipeline failure
         echo "WARNING: Post-failure upload flow failed: ${err}"
         echo "Continuing so original pipeline failure remains visible."
