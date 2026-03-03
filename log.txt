@@ -1,4 +1,4 @@
-Started by user Rajiv Verma
+Started by user Rajiv Nayan Verma
 Replayed #44
 Connecting to https://api.github.com with no credentials, anonymous access
 Obtained Jenkinsfile from 313143e6a0599878c32dfb05e7665841c2c1e4e0
@@ -50,7 +50,9 @@ Installing Terraform locally in the workspace...
 + curl -LO https://releases.hashicorp.com/terraform/1.14.4/terraform_1.14.4_linux_amd64.zip
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 29.4M  100 29.4M    0     0  98.4M      0 --:--:-- --:--:-- --:--:-- 98.5M
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 29.4M  100 29.4M    0     0  98.4M      0 --:--:-- --:--:-- --:--:-- 98.5M
 + unzip -o terraform_1.14.4_linux_amd64.zip
 Archive:  terraform_1.14.4_linux_amd64.zip
   inflating: LICENSE.txt             
@@ -115,7 +117,8 @@ DEPRECATED: The legacy builder is deprecated and will be removed in a future rel
             Install the buildx component to build images with BuildKit:
             https://docs.docker.com/go/buildx/
 
-Sending build context to Docker daemon  882.6MB
+Sending build context to Docker daemon  882.6MB
+
 Step 1/7 : FROM tomcat:10.1-jdk17
  ---> 66f534fd3c9c
 Step 2/7 : RUN rm -rf /usr/local/tomcat/webapps/ROOT
@@ -623,3 +626,4 @@ Cleaning up workspace
 [Pipeline] // node
 [Pipeline] End of Pipeline
 Finished: SUCCESS
+
