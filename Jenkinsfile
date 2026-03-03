@@ -5,7 +5,7 @@ pipeline {
         PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
         TERRAFORM_VERSION = "1.14.4"
         // API Gateway endpoint (your manual command uses this)
-        CI_FAILURE_API_ENDPOINT = ""
+        //CI_FAILURE_API_ENDPOINT = ""
     }
 
     stages {
@@ -273,8 +273,7 @@ pipeline {
 
         // 2) Invoke API Gateway exactly like your manual curl (POST, headers only)
         withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GTW_KEY')]) {
-        
-        withEnv(["LOG_FILE=${logFile}", "API_ENDPOINT=${CI_FAILURE_API_ENDPOINT}"]){
+        withEnv(["LOG_FILE=${logFile}", "API_ENDPOINT=${env.CI_FAILURE_API_ENDPOINT}"]){
         
 			sh '''#!/bin/bash
                 set -euo pipefail
