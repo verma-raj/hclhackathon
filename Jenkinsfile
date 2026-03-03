@@ -5,7 +5,7 @@ pipeline {
         PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
         TERRAFORM_VERSION = "1.14.4"
         // API Gateway endpoint (your manual command uses this)
-        CI_FAILURE_API_ENDPOINT = "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure"
+        CI_FAILURE_API_ENDPOINT = ""
     }
 
     stages {
@@ -18,6 +18,7 @@ pipeline {
                     env.TRIVY_IMAGE          = props.TRIVY_IMAGE?.replaceAll(/^"|"$/, '')
                     def repo                 = props.ECR_REPO?.replaceAll(/^"|"$/, '')
                     env.DOCKER_IMAGE         = "${repo}:${env.BUILD_NUMBER}"
+                    env.CI_FAILURE_API_ENDPOINT = props.CI_FAILURE_API_ENDPOINT?.replaceAll(/^"|"$/, '')?.trim()
                 }
             }
         }
@@ -221,19 +222,27 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'jenkins-api-token', passwordVariable: 'JENKINS_TOKEN', usernameVariable: 'JENKINS_USER')]) {
 
                 withEnv(["LOG_FILE=${logFile}", "CONSOLE_URL=${env.BUILD_URL}consoleText"]) {
+                
+                		echo "JENKINS_USER set? " + (env.JENKINS_USER ? "YES" : "NO")
+				echo "JENKINS_TOKEN set? " + (env.JENKINS_TOKEN ? "YES" : "NO")
+				
                     sh '''#!/bin/bash
                       set -euo pipefail
                       echo "Downloading console output from: ${CONSOLE_URL}"
                       
-     
-
       		# 1) Clean token (removes hidden CR/LF that causes 401)
       			JENKINS_TOKEN_CLEAN="$(printf "%s" "$JENKINS_TOKEN" | tr -d '\r\n')"
+      			
+      			JENKINS_BASE="$(echo "${CONSOLE_URL}" | sed -E 's#(https?://[^/]+)/.*#\\1#')"
+				echo "STEP DEBUG 1: Jenkins base detected: ${JENKINS_BASE}"
+				
 
       		# 2) Preflight: validate auth in the SAME pipeline context (no secrets printed)
-      			WHOAMI_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+      			
+				WHOAMI_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+      				--connect-timeout 10 --max-time 30 \
         				-u "$JENKINS_USER:$JENKINS_TOKEN_CLEAN" \
-        				"http://52.73.77.126:8080/whoAmI/api/json")
+        				"${JENKINS_BASE}/whoAmI/api/json")
       				echo "whoAmI HTTP status: ${WHOAMI_CODE}"
 
       		# 3) Preflight: validate consoleText access before download
@@ -265,9 +274,9 @@ pipeline {
         // 2) Invoke API Gateway exactly like your manual curl (POST, headers only)
         withCredentials([string(credentialsId: 'apigw-ci-failure-key', variable: 'API_GTW_KEY')]) {
         
-        withEnv(["LOG_FILE=${logFile}", "API_ENDPOINT=${env.CI_FAILURE_API_ENDPOINT}"]){
+        withEnv(["LOG_FILE=${logFile}", "API_ENDPOINT=${CI_FAILURE_API_ENDPOINT}"]){
         
-sh '''#!/bin/bash
+			sh '''#!/bin/bash
                 set -euo pipefail
                 set +x
 
