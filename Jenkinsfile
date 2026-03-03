@@ -5,7 +5,7 @@ pipeline {
         PATH = "${env.WORKSPACE}/aws-bin:${env.PATH}"
         TERRAFORM_VERSION = "1.14.4"
         // API Gateway endpoint (your manual command uses this)
-        CI_FAILURE_API_ENDPOINT = "https://01ul4tueeh.execute-api.us-east-1.amazonaws.com/prod/ci-failure"
+        CI_FAILURE_API_ENDPOINT = "https://hhhd6ntso4.execute-api.us-east-1.amazonaws.com/prod/ci-failure"
     }
 
     stages {
