@@ -32,22 +32,23 @@ docker run -d --name jenkins \
 5. Install Plugins in jenkins
 
 6. Configure credentials
-Create Jenkins API token, Go to right top corner user --> security --> Add New Token --> Name = jenkins-api-token, Copy the token and save
-a. jenkins api in jenkins credentials
+a. Create Jenkins API token, Go to right top corner user --> security --> Add New Token --> Name = jenkins-api-token, Copy the token and save
+
+b. jenkins api in jenkins credentials
 Go to jenkins credentials -> select 
 Kind = username and Password
 username = jenkisn username "jenkins"
 ID = jenkins-api-token
 password = < jenkins api token>
 
-b. GitHub credentials in jenkins
+c. GitHub credentials in jenkins
 Go to jenkins credentials -> 
 Kind : Username and Password
 Username: <user name of github>
 ID : github-pat
 Password: <git hub PAT token>
 
-c. API gateway token
+d. API gateway token
 
 Kind: secret text
 ID: apigw-ci-failure-key
