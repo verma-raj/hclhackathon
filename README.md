@@ -59,6 +59,8 @@ Description : API GTW Key
 a. configure the jenkins url in github webhook
 b. Go to new item -> give name  , Multibranch Pipeline --> give name Display Name, Branch Sources (Add source GitHub) -> Select credential (Github PAT) --> Repository HTTPS URL (github repo url) --> Behaviours ( strategy - All branches)  SAVE and APPLY
 
+..
+
 
 
 
