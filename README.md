@@ -32,7 +32,7 @@ docker run -d --name jenkins \
 5. Install Plugins in jenkins
 
 6. Configure credentials
-
+Create Jenkins API token, Go to right top corner user --> security --> Add New Token --> Name = jenkins-api-token, Copy the token and save
 a. jenkins api in jenkins credentials
 Go to jenkins credentials -> select 
 Kind = username and Password
