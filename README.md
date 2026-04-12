@@ -14,9 +14,9 @@ sudo mkdir -p jenkins_home
 sudo chown ubuntu:ubuntu jenkins_home
 
 3. Install python3 and pip3.
-sudo apt install -y python3
-sudo apt install -y python3-pip
-sudo apt install -y python3-venv
+sudo apt install -y python3 ;
+sudo apt install -y python3-pip ;
+sudo apt install -y python3-venv ;
 
 
 4. Run Jenkins container
@@ -39,7 +39,7 @@ Go to jenkins credentials -> select
 Kind = username and Password
 username = jenkisn username "jenkins"
 ID = jenkins-api-token
-password = < jenkins api token>
+password = < jenkins api token>  11d9ecfdfad0af15f91d3a7cdfa2d7c9a9
 
 c. GitHub credentials in jenkins
 Go to jenkins credentials -> 
